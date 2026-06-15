@@ -41,25 +41,20 @@ use Illuminate\Support\Str;
       <div class="panel-header">
         <div>
           <h2>Create Timesheet</h2>
-          <p class="panel-copy">Generate a unique report code and capture your work details.</p>
+          {{--git <p class="panel-copy">Generate a unique report code and capture your work details.</p> --}}
         </div>
       </div>
 
       <form method="POST" action="{{ route('timesheets.store') }}" class="filter-form">
         @csrf
         <label>
-          <span>Report Code</span>
+          {{-- <span>Report Code</span> --}}
          {{-- <input type="text"
        name="report_code"
        value="{{ old('report_code', $existingCode ?? 'TS-' . strtoupper(Str::random(6))) }}"
        {{ $existingCode ? 'readonly' : '' }}
        required> --}}
-       <input type="text"
-       name="report_code"
-       id="report_code"
-       value="{{ old('report_code', $displayCode) }}"
-       {{ $isExisting ? 'readonly' : '' }}
-       required>
+       <input type="hidden" name="report_code"id="report_code"value="{{ old('report_code', $displayCode) }}"{{ $isExisting ? 'readonly' : '' }}required>
 
           {{-- <input type="text" name="report_code" value="{{ old('report_code', 'TS-' . strtoupper(Str::random(6))) }}" placeholder="Enter unique report code" required> --}}
           @error('report_code')<span class="error-message">{{ $message }}</span>@enderror
@@ -82,7 +77,7 @@ use Illuminate\Support\Str;
         <label>
           <span>Status</span>
           <select name="status" required>
-            <option value="Pending"{{ old('status') === 'Pending' ? ' selected' : '' }}>Pending</option>
+            <option value="Pendigit pullng"{{ old('status') === 'Pending' ? ' selected' : '' }}>Pending</option>
             <option value="Done"{{ old('status') === 'Done' ? ' selected' : '' }}>Done</option>
           </select>
           @error('status')<span class="error-message">{{ $message }}</span>@enderror
@@ -104,7 +99,7 @@ use Illuminate\Support\Str;
         <table class="attendance-table">
           <thead>
             <tr>
-              <th>Report Code</th>
+              {{-- <th>Report Code</th> --}}
               <th>Date</th>
               <th>Status</th>
               <th>Project</th>
@@ -120,7 +115,7 @@ use Illuminate\Support\Str;
 
         {{-- @foreach($report->details as $detail) --}}
             <tr>
-                <td><a href="{{ route('timesheets.show', $report->report_code) }}">{{ $report->report_code }}</a></td>
+                {{-- <td><a href="{{ route('timesheets.show', $report->report_code) }}">{{ $report->report_code }}</a></td> --}}
                 <td>{{ $report->report_date->format('Y-m-d') }}</td>
                 <td>{{ $detail->status ?? 'Pending' }}</td>
                 <td>{{ $report->details->count() }}</td>
