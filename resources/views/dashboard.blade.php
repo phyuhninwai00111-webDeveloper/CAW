@@ -7,6 +7,7 @@
         <header class="hero">
             <div>
                 <p class="eyebrow">Company Attendance</p>
+                <p>Hello</p>
                 <h1>Attendance Dashboard</h1>
                 <p class="hero-copy">Track attendance activity at a glance, review the latest totals, and jump back into detailed records.</p>
             </div>
