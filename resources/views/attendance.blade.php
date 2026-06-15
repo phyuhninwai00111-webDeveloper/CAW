@@ -13,8 +13,16 @@
       <div>
         <p class="eyebrow">Attendance</p>
         <h1>Attendance Records</h1>
-        <p class="hero-copy" id="attendance-filter-copy">Filter by date range.</p>
+
+        <!-- <div style="display: flex;margin-left:auto;">
+          <span id="current-time-display" style="color: #63e2b7; font-weight: bold; font-size: 1.1rem; margin-right: 10px;"></span>     
+        </div> -->
+        <!-- <p class="hero-copy" id="attendance-filter-copy">Filter by date range.</p> -->
+         <p>Current Time: 
+          <span id="current-time-display" style="color:rgb(228, 240, 236); font-weight: bold; font-size: 1.1rem;"></span>
+         </p>
       </div>
+      
       <div class="hero-actions">
         <button type="button" id="btn-checkin" class="btn btn-primary">Check In</button>
         <button type="button" id="btn-checkout" class="btn btn-primary">Check Out</button>
@@ -227,6 +235,38 @@ function setDefaultDateRange() {
 
   $('#date-from').val(formatDateInput(fromDate));
   $('#date-to').val(formatDateInput(today));
+  function startLiveClock() {
+    function updateClock() {
+      var now = new Date();
+      var hours = now.getHours();
+      var minutes = now.getMinutes();
+      var seconds = now.getSeconds();
+      
+      // 1. AM သို့မဟုတ် PM ခွဲခြားခြင်း
+      var period = hours >= 12 ? 'PM' : 'AM';
+      
+      // 2. 12-hour format ပြောင်းခြင်း
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 ဖြစ်နေရင် 12 လို့ပြမယ်
+      
+      // 3. နာရီ၊ မိနစ်၊ စက္ကန့် အားလုံးကို ဂဏန်းနှစ်လုံးတွဲ ဖြစ်အောင်လုပ်ခြင်း (ဥပမာ- 09:05:55)
+      hours = String(hours).padStart(2, '0'); // ဒီစာကြောင်း ထည့်လိုက်လို့ 9 ကနေ 09 ဖြစ်သွားပါပြီ
+      minutes = String(minutes).padStart(2, '0');
+      seconds = String(seconds).padStart(2, '0');
+      
+      // 4. ပုံစံစုစည်းခြင်း
+      var timeString = hours + ':' + minutes + ':' + seconds;
+
+      // 5. UI ပေါ်တွင် "09:05:55 AM" ပုံစံအတိုင်း စာသား ထုတ်ပြခြင်း
+      $('#current-time-display').text(timeString + ' ' + period);
+    }
+
+    updateClock(); // ချက်ချင်း တစ်ကြိမ် Run မယ်
+    setInterval(updateClock, 1000); // ၁ စက္ကန့်လျှင် တစ်ကြိမ် ပုံမှန် Update လုပ်ပေးမယ်
+}
+
+// Clock ကို စတင်မောင်းနှင်ပါ
+startLiveClock();
 }
 
 function loadCurrentFilters() {
