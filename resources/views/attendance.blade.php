@@ -83,7 +83,7 @@ function renderTableHeader(roleId) {
     '<th>Date</th>' +
     '<th>Check In</th>' +
     '<th>Check Out</th>' ;
-    // '<th>Report</th>'
+    //'<th>Report</th>'
 
   if (isHrRole(roleId)) {
     html += '<th>Department</th>';
@@ -143,8 +143,8 @@ function renderRows(rows, roleId){
       '<td>' + escapeHtml(r.name) + '</td>' +
       '<td>' + escapeHtml(r.attendance_date) + '</td>' +
       '<td' + checkInClass + '>' + escapeHtml(r.check_in) + '</td>' +
-      '<td>' + escapeHtml(r.check_out) + '</td>' +
-      '<td>' + (r.report_code ? '<a href="' + timesheetUrlBase + '/' + encodeURIComponent(r.report_code) + '">' + escapeHtml(r.report_code) + '</a>' : '') + '</td>';
+      '<td>' + escapeHtml(r.check_out) + '</td>';
+      //'<td>' + (r.report_code ? '<a href="' + timesheetUrlBase + '/' + encodeURIComponent(r.report_code) + '">' + escapeHtml(r.report_code) + '</a>' : '') + '</td>';
 //'<td>' + (r.report_code ? '<a href="' + timesheetUrlBase + '/' + encodeURIComponent(r.report_code) + '">' + escapeHtml(r.report_code) + '</a>' : '-') + '</td>' +
     if (isHr) {
       html += '<td>' + escapeHtml(r.department_name) + '</td>';
