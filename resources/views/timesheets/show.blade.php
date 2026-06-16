@@ -20,57 +20,6 @@
       </div>
     </header>
 
-    <section class="panel filter-panel">
-      <div class="panel-header">
-        <div>
-          <h2>Timesheet Information</h2>
-          <p class="panel-copy">{{ $report->employee->department->department_name ?? 'No department' }}</p>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="attendance-table">
-          <thead>
-            <tr>
-             <th>Date</th>
-              <th>Project Name</th>
-              <th>Functions</th>
-              <th>Status</th>
-              <th>Remark</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{-- ဒီ code က data ဘယ်နှစ်ခုရှိလဲဆိုတာ ပေါ်ပေးပါလိမ့်မယ် --}}
-<p>Total projects: {{ $report->details->count() }}</p>
-            @foreach($report->details as $detail)
-              <tr>
-                <td>{{ \Carbon\Carbon::parse($report->report_date)->format('Y-m-d') }}</td>
-                <td>{{ $detail->project_name }}</td>
-                <td>{{ $detail->functions }}</td>
-                <td>{{ $detail->status }}</td>
-                <td>{{ $detail->remark }}</td>
-                <td>
-            {{-- Edit ခလုတ်ကို နှိပ်ရင် Form ထဲက ID ကို ဖြည့်ပေးမယ် --}}
-            <button type="button" class="btn btn-primary"
-                onclick="
-                    document.getElementById('edit_project_name').value = '{{ addslashes($detail->project_name) }}';
-                    document.getElementById('edit_functions').value = '{{ addslashes($detail->functions) }}';
-                    document.getElementById('edit_status').value = '{{ $detail->status }}';
-                    document.getElementById('edit_remark').value = '{{ addslashes($detail->remark) }}';
-                    // Form ရဲ့ Action ကို ဒီ detail ရဲ့ ID နဲ့ ချက်ချင်းပြောင်းပေးမယ်
-                    document.getElementById('editForm').action = '/timesheets/detail/{{ $detail->id }}';
-                ">
-                Edit
-            </button>
-        </td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-    </section>
-
     @if($canEdit)
       <section class="panel filter-panel">
         <div class="panel-header">
@@ -125,5 +74,57 @@
 </form>
       </section>
     @endif
+    <section class="panel filter-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Timesheet Information</h2>
+          <p class="panel-copy">{{ $report->employee->department->department_name ?? 'No department' }}</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+             <th>Date</th>
+              <th>Project Name</th>
+              <th>Functions</th>
+              <th>Status</th>
+              <th>Remark</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{-- ဒီ code က data ဘယ်နှစ်ခုရှိလဲဆိုတာ ပေါ်ပေးပါလိမ့်မယ် --}}
+<p>Total projects: {{ $report->details->count() }}</p>
+            @foreach($report->details as $detail)
+              <tr>
+                <td>{{ \Carbon\Carbon::parse($report->report_date)->format('Y-m-d') }}</td>
+                <td>{{ $detail->project_name }}</td>
+                <td>{{ $detail->functions }}</td>
+                <td>{{ $detail->status }}</td>
+                <td>{{ $detail->remark }}</td>
+                <td>
+            {{-- Edit ခလုတ်ကို နှိပ်ရင် Form ထဲက ID ကို ဖြည့်ပေးမယ် --}}
+            <button type="button" class="btn btn-primary"
+                onclick="
+                    document.getElementById('edit_project_name').value = '{{ addslashes($detail->project_name) }}';
+                    document.getElementById('edit_functions').value = '{{ addslashes($detail->functions) }}';
+                    document.getElementById('edit_status').value = '{{ $detail->status }}';
+                    document.getElementById('edit_remark').value = '{{ addslashes($detail->remark) }}';
+                    // Form ရဲ့ Action ကို ဒီ detail ရဲ့ ID နဲ့ ချက်ချင်းပြောင်းပေးမယ်
+                    document.getElementById('editForm').action = '/timesheets/detail/{{ $detail->id }}';
+                ">
+                Edit
+            </button>
+        </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    
   </div>
 @endsection
