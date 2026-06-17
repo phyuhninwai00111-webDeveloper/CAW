@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon; // ဖိုင်ရဲ့ အပေါ်ဆုံးမှာ ထည့်ပါ
@@ -118,14 +119,20 @@ class AttendanceController extends Controller
     public function summary(Request $request)
     {
         $user = Auth::user();
-        $roleId = $user->role_id;
+        $roleId = (int) $user->role_id;
 
-        $query = Attendance::query()->join('users', 'users.employee_code', '=', 'attendance.employee_code');
+        $query = Attendance::query()
+            ->select(['attendance.*', 'users.department_id', 'departments.department_name'])
+            ->join('users', 'users.employee_code', '=', 'attendance.employee_code')
+            ->leftJoin('departments', 'departments.id', '=', 'users.department_id');
 
         if ($roleId === 2) {
             $query->where('users.department_id', $user->department_id);
         } elseif ($roleId === 3) {
             $query->where('attendance.employee_code', $user->employee_code);
+        }
+        if ($roleId === 1 && $request->filled('department_id')) {
+            $query->where('users.department_id', $request->query('department_id'));
         }
 
         if ($request->filled('from')) {
@@ -135,10 +142,30 @@ class AttendanceController extends Controller
             $query->where('attendance.attendance_date', '<=', $request->query('to'));
         }
 
-        $total = $query->count();
-        $late = (clone $query)->whereTime('check_in', '>', '09:00:00')->count();
+        $rows = $query->orderBy('attendance.attendance_date')->get();
+        $total = $rows->count();
+        $late = $rows->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count();
+        $byDate = $rows->groupBy(fn ($row) => Carbon::parse($row->attendance_date)->format('Y-m-d'))
+            ->map(fn ($items, $date) => [
+                'label' => $date,
+                'total' => $items->count(),
+                'late' => $items->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count(),
+            ])
+            ->values();
+        $byDepartment = $rows->groupBy(fn ($row) => $row->department_name ?: 'No department')
+            ->map(fn ($items, $departmentName) => [
+                'label' => $departmentName,
+                'total' => $items->count(),
+            ])
+            ->values();
 
-        return response()->json(['total' => $total, 'late' => $late]);
+        return response()->json([
+            'total' => $total,
+            'late' => $late,
+            'byDate' => $byDate,
+            'byDepartment' => $byDepartment,
+            'departments' => $roleId === 1 ? Department::orderBy('department_name')->get(['id', 'department_name']) : [],
+        ]);
     }
         public function checkCode(Request $request)
     {

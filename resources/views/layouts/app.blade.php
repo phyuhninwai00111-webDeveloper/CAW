@@ -14,6 +14,9 @@
         @stack('head')
     </head>
     <body>
+        @auth
+            @include('layouts.navigation')
+        @endauth
         @yield('content')
         @stack('scripts')
     </body>

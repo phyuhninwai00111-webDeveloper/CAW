@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TimesheetController;
+use App\Models\Department;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,7 +14,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return view('dashboard', [
+            'departments' => Department::orderBy('department_name')->get(),
+            'isHr' => (int) auth()->user()->role_id === 1,
+        ]);
     })->name('dashboard');
 
     Route::get('/attendance', function () {
@@ -24,12 +29,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.checkin');
     Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.checkout');
 
-    Route::get('/timesheets', [\App\Http\Controllers\TimesheetController::class, 'index'])->name('timesheets.index');
-    Route::get('/timesheets/{report_code}', [\App\Http\Controllers\TimesheetController::class, 'show'])->name('timesheets.show');
-    Route::post('/timesheets', [\App\Http\Controllers\TimesheetController::class, 'store'])->name('timesheets.store');
-    Route::patch('/timesheets/{report_code}', [\App\Http\Controllers\TimesheetController::class, 'update'])->name('timesheets.update');
-//  Route::get('/timesheets/check-code', [\App\Http\Controllers\TimesheetController::class, 'checkCode'])->name('timesheets.checkCode');
-    Route::patch('/timesheets/{id}', [\App\Http\Controllers\TimesheetController::class, 'update'])->name('timesheets.update');
+    Route::get('/timesheets', [TimesheetController::class, 'index'])->name('timesheets.index');
+    Route::post('/timesheets', [TimesheetController::class, 'store'])->name('timesheets.store');
+    Route::get('/timesheets/{report_code}', [TimesheetController::class, 'show'])->name('timesheets.show');
+    Route::put('/timesheets/{report_code}', [TimesheetController::class, 'update'])->name('timesheets.update');
 
     Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
