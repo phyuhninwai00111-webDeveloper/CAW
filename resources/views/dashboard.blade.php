@@ -8,45 +8,10 @@
             <div>
                 <p class="eyebrow">Company Attendance</p>
                 <h1>Attendance Dashboard</h1>
-                <p class="hero-copy">Track attendance activity at a glance, review the latest totals, and compare attendance by department.</p>
+                <p class="hero-copy">Track attendance activity at a glance and review the latest totals.</p>
             </div>
-            <div class="hero-actions">
-                <a href="{{ route('attendance') }}" class="btn btn-primary">View Attendance</a>
-                <a href="{{ route('timesheets.index') }}" class="btn btn-primary">View Timesheets</a>
-            </div>
+
         </header>
-
-        <section class="panel filter-panel">
-            <div class="panel-header">
-                <div>
-                    <h2>Dashboard Filters</h2>
-                    <p class="panel-copy">Filter cards and charts by date range{{ $isHr ? ' and department' : '' }}.</p>
-                </div>
-            </div>
-
-            <form id="dashboardFilters" class="filter-form stacked-filter">
-                <label>
-                    <span>From</span>
-                    <input type="date" name="from" id="dashboard-from">
-                </label>
-                <label>
-                    <span>To</span>
-                    <input type="date" name="to" id="dashboard-to">
-                </label>
-                @if($isHr)
-                    <label>
-                        <span>Department</span>
-                        <select name="department_id">
-                            <option value="">All departments</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department->id }}">{{ $department->department_name }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-                @endif
-                <button type="submit" class="btn btn-primary">Apply Filter</button>
-            </form>
-        </section>
 
         <section class="stats-grid" id="summary" aria-live="polite">
             <article class="stat-card loading-card">
