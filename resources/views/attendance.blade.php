@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <form id="filters" class="filter-form">
+      <!-- <form id="filters" class="filter-form">
         <label>
           <span>From</span>
           <input type="date" name="from" id="date-from">
@@ -50,8 +50,26 @@
         <span id="employee-code-filter-slot"></span>
         <button type="submit" class="btn btn-primary">Apply Filter</button>
       </form>
+    </section> -->
+      <form id="filters" class="filter-form" style="display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 15px !important; align-items: flex-end !important; justify-content: flex-start !important; width: 100% !important;">
+        
+        <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
+          <span>From</span>
+          <input type="date" name="from" id="date-from" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
+        </label>
+        
+        <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
+          <span>To</span>
+          <input type="date" name="to" id="date-to" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
+        </label>
+        
+        <span id="department-filter-slot" style="display: none !important;"></span>
+        <span id="employee-code-filter-slot" style="display: none !important;"></span>
+        
+        <button type="submit" class="btn btn-primary" style="height: 40px !important; padding: 0 20px !important; white-space: nowrap !important; margin-bottom: 2px !important; flex: none !important;">Apply Filter</button>
+        
+      </form>
     </section>
-
     <section class="panel table-panel">
       <div class="panel-header">
         <h2>Records</h2>
@@ -172,7 +190,7 @@ function getRequestError(xhr, fallback) {
   return fallback;
 }
 
-function applyRoleControls(roleId) {
+/*function applyRoleControls(roleId) {
   var isHr = isHrRole(roleId);
   var canSearchEmployeeCode = isHr || Number(roleId) === 2;
 
@@ -204,7 +222,57 @@ function applyRoleControls(roleId) {
   $('#attendance-filter-copy').text(isHr ? 'Filter by date range, department, and employee code.' : (canSearchEmployeeCode ? 'Filter by date range and employee code.' : 'Filter by date range.'));
   $('#filter-help').text(isHr ? 'Choose a date range, department, or employee code to narrow the attendance list.' : (canSearchEmployeeCode ? 'Choose a date range or employee code to narrow the attendance list.' : 'Choose a date range to narrow the attendance list.'));
 }
+*/
+function applyRoleControls(roleId) {
+  var isHr = isHrRole(roleId);
+  var canSearchEmployeeCode = isHr || Number(roleId) === 2;
 
+  // Department handling
+  if (isHr) {
+    if (!$('#department-filter').length) {
+      $('#department-filter-slot').replaceWith(
+        '<label id="department-filter" style="width: 200px !important; flex: none !important; display: flex !important; flex-direction: column !important;">' +
+          '<span>Department</span>' +
+          '<select name="department_id" id="department_id" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important;">' +
+            '<option value="">Loading departments...</option>' +
+          '</select>' +
+        '</label>'
+      );
+      loadDepartments();
+    } else {
+      $('#department-filter').attr('style', 'width: 200px !important; flex: none !important; display: flex !important; flex-direction: column !important;').show();
+    }
+  } else {
+    if ($('#department-filter').length) {
+      $('#department-filter').replaceWith('<span id="department-filter-slot" style="display:none !important;"></span>');
+    } else {
+      $('#department-filter-slot').hide();
+    }
+  }
+
+  // Employee Code handling
+  if (canSearchEmployeeCode) {
+    if (!$('#employee-code-filter').length) {
+      $('#employee-code-filter-slot').replaceWith(
+        '<label id="employee-code-filter" style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">' +
+          '<span>Employee Code</span>' +
+          '<input type="text" name="employee_code" placeholder="Employee code" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important;">' +
+        '</label>'
+      );
+    } else {
+      $('#employee-code-filter').attr('style', 'width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;').show();
+    }
+  } else {
+    if ($('#employee-code-filter').length) {
+      $('#employee-code-filter').replaceWith('<span id="employee-code-filter-slot" style="display:none !important;"></span>');
+    } else {
+      $('#employee-code-filter-slot').hide();
+    }
+  }
+
+  $('#attendance-filter-copy').text(isHr ? 'Filter by date range, department, and employee code.' : (canSearchEmployeeCode ? 'Filter by date range and employee code.' : 'Filter by date range.'));
+  $('#filter-help').text(isHr ? 'Choose a date range, department, or employee code to narrow the attendance list.' : (canSearchEmployeeCode ? 'Choose a date range or employee code to narrow the attendance list.' : 'Choose a date range to narrow the attendance list.'));
+}
 function load(filters){
   $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){

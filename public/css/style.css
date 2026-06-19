@@ -286,7 +286,7 @@ body::before {
   gap: 14px;
 }
 
-.filter-form label {
+.filter-form label,span {
   display: flex;
   flex-direction: column;
 
@@ -294,11 +294,54 @@ body::before {
   gap: 10px;
   color: var(--muted);
   font-weight: 700;
+  /* min-width: 150px; */
+}
+/* ၁။ Form တစ်ခုလုံးကို Flexbox ပြောင်းပြီး တစ်တန်းတည်း စီခိုင်းတာ */
+.filter-form {
+  display: flex;
+  flex-direction: row;       /* Element တွေကို ဘေးတိုက် တစ်တန်းတည်း စီမယ် */
+  align-items: flex-end;     /* စာသားတွေနဲ့ ခလုတ်ကို အောက်ခြေချင်း ညှိမယ် */
+  gap: 15px;                 /* element တစ်ခုနဲ့တစ်ခု ကြား အကွာအဝေး */
+  flex-wrap: nowrap;         /* Screen ကျဉ်းရင်တောင် အောက်တန်းကို ဆင်းမသွားစေဖို့ */
+  width: 100%;               /* နေရာအပြည့်ယူမယ် */
 }
 
+/* ၂။ Filter Input တစ်ခုချင်းစီရဲ့ Box (Label နှင့် Slot များ) */
+.filter-form > label, 
+.filter-form > span {
+  display: flex;
+  flex-direction: column;    /* "From" ဆိုတဲ့စာသားက အပေါ်၊ Box က အောက်မှာ ရှိနေစေဖို့ */
+  gap: 5px;                  /* စာသားနဲ့ Input box ကြား အကွာအဝေး */
+  flex: 1;                   /* Input field အားလုံးကို အချိုးကျ အကျယ်တူညီအောင် ညှိတာ */
+  min-width: 120px;          /* အရမ်းကျဉ်းမသွားအောင် အနည်းဆုံး width သတ်မှတ်တာ */
+}
+
+/* ၃။ Input Field များ၊ Select Box များနှင့် Button များရဲ့ ပုံစံ */
+.filter-form input, 
+.filter-form select,
+.filter-form button {
+  width: 100%;               /* မိမိရဲ့ Wrapper box အကျယ်အတိုင်း အပြည့်ယူမယ် */
+  height: 38px;              /* အမြင့်တွေကို အကုန်တူညီအောင် ညှိပေးတာ (ခလုတ်အပါအဝင်) */
+  box-sizing: border-box;
+  padding: 6px 12px;
+}
+
+/* ၄။ Apply Filter ခလုတ်ကို Custom Width ပြန်ပေးချင်ရင် (ရွေးချယ်ရန်) */
+.filter-form .btn-primary {
+  flex: 0 0 auto;            /* ခလုတ်ကို အခြား field တွေလို လိုက်မကျယ်စေဘဲ သူ့ size အတိုင်းပဲ ထားတာ */
+  width: auto;               /* စာသားအလိုက် width ယူမယ် */
+  white-space: nowrap;       /* စာသားကို နှစ်တန်းမဖြစ်စေဖို့ */
+}
 .filter-form input,
 .filter-form select,
-.filter-form textarea,
+.filter-form textarea{
+  min-width: 100px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  color: var(--text);
+}
 .timesheet-form input,
 .timesheet-form select,
 .timesheet-form textarea {
