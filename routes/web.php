@@ -33,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timesheets', [TimesheetController::class, 'store'])->name('timesheets.store');
     Route::get('/timesheets/{report_code}', [TimesheetController::class, 'show'])->name('timesheets.show');
     Route::put('/timesheets/{report_code}', [TimesheetController::class, 'update'])->name('timesheets.update');
-
+    
     Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
 });
