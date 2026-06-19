@@ -73,7 +73,9 @@
               @if($isHr)
                 <th>Department</th>
               @endif
+              @if(request()->query('mode') !== 'view')
               <th>Action</th>
+              @endif
             </tr>
           </thead>
           <tbody>
@@ -90,7 +92,7 @@
                 @if($isHr)
                   <td>{{ $report->department_name ?? '-' }}</td>
                 @endif
-                <td><a href="{{ route('timesheets.show', $report->report_code) }}" class="btn btn-secondary">View</a></td>
+                <td><a href="{{ route('timesheets.show', [$report->report_code, 'mode' => 'view']) }}" class="btn btn-secondary">View</a></td>
               </tr>
             @empty
               <tr>

@@ -88,6 +88,7 @@ class TimesheetController extends Controller
             abort(403);
         }
 
+
         return view('timesheets.show', [
             'report' => $report,
             'canEdit' => $this->canEditReport($report),
@@ -99,16 +100,17 @@ class TimesheetController extends Controller
         $data = $this->validatedTimesheet($request);
         $user = Auth::user();
 
+        $generatedCode = 'TL-' . str_replace('-', '', $data['report_date']);
         $report = DailyReport::firstOrCreate(
             [
                 'employee_code' => $user->employee_code,
                 'report_date' => $data['report_date'],
             ],
             [
-                'report_code' => $data['report_code'],
+                'report_code' => $generatedCode,
             ]
         );
-
+//$data['report_code']
         foreach ($data['details'] as $detail) {
             $report->details()->create($detail);
         }
@@ -132,10 +134,18 @@ class TimesheetController extends Controller
 
         $data = $this->validatedTimesheet($request, $report->report_code);
         $report->update(['report_date' => $data['report_date']]);
-        $report->details()->delete();
 
-        foreach ($data['details'] as $detail) {
-            $report->details()->create($detail);
+        if (! empty($data['detail_id'])) {
+            $report->details()
+                ->whereKey($data['detail_id'])
+                ->firstOrFail()
+                ->update($data['details'][0]);
+        } else {
+            $report->details()->delete();
+
+            foreach ($data['details'] as $detail) {
+                $report->details()->create($detail);
+            }
         }
 
         Attendance::where('employee_code', $report->employee_code)
@@ -161,6 +171,7 @@ class TimesheetController extends Controller
         $data = $request->validate([
             'report_date' => ['required', 'date'],
             'report_code' => ['required', 'string'],
+            'detail_id' => ['nullable', 'integer'],
             'details' => ['required', 'array', 'min:1'],
             'details.*.project_name' => ['required', 'string'],
             'details.*.functions' => ['required', 'string'],

@@ -3,6 +3,12 @@
 @section('title', 'Timesheet Details - Attendance')
 
 @section('content')
+  @php
+    $selectedDetail = $canEdit && request()->boolean('edit')
+        ? $report->details->firstWhere('id', (int) request('detail_id'))
+        : null;
+  @endphp
+
   <div class="page-shell">
     <header class="hero compact-hero">
       <div>
@@ -20,8 +26,8 @@
       <div class="status-message">{{ session('success') }}</div>
     @endif
 
-    @if($canEdit)
-      <section class="panel filter-panel">
+    @if($selectedDetail)
+      <section class="panel filter-panel" id="edit-timesheet">
         <div class="panel-header">
           <div>
             <h2>Edit Timesheet</h2>
@@ -32,6 +38,7 @@
         @include('timesheets._form', [
           'timesheetId' => $report->report_code,
           'report' => $report,
+          'selectedDetail' => $selectedDetail,
         ])
       </section>
     @endif
@@ -54,6 +61,10 @@
               <th>Functions</th>
               <th>Status</th>
               <th>Remark</th>
+              {{-- @if($canEdit) --}}
+                @if(request()->query('mode') !== 'view')
+                <th>Action</th>
+              @endif
             </tr>
           </thead>
           <tbody>
@@ -64,10 +75,16 @@
                 <td>{{ $detail->functions }}</td>
                 <td>{{ $detail->status }}</td>
                 <td>{{ $detail->remark ?? '-' }}</td>
+                @if(request()->query('mode') !== 'view')
+                  <td><a href="{{ route('timesheets.show',
+                   ['report_code' => $report->report_code, 'edit' => 1, 'detail_id' => $detail->id]). '?mode=edit' }}
+                   #edit-timesheet" class="btn btn-secondary">Edit</a></td>
+                @endif
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="empty-state">No detail rows have been added.</td>
+
+                <td colspan="{{ $canEdit ? 6 : 5 }}" class="empty-state">No detail rows have been added.</td>
               </tr>
             @endforelse
           </tbody>

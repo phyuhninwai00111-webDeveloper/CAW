@@ -283,6 +283,7 @@ body::before {
   display: flex;
   flex-wrap: nowrap;
   align-items: end;
+  /* end */
   gap: 14px;
 }
 
@@ -294,6 +295,7 @@ body::before {
   gap: 10px;
   color: var(--muted);
   font-weight: 700;
+  margin-bottom: 0;
   /* min-width: 150px; */
 }
 /* ၁။ Form တစ်ခုလုံးကို Flexbox ပြောင်းပြီး တစ်တန်းတည်း စီခိုင်းတာ */
@@ -307,7 +309,7 @@ body::before {
 }
 
 /* ၂။ Filter Input တစ်ခုချင်းစီရဲ့ Box (Label နှင့် Slot များ) */
-.filter-form > label, 
+.filter-form > label,
 .filter-form > span {
   display: flex;
   flex-direction: column;    /* "From" ဆိုတဲ့စာသားက အပေါ်၊ Box က အောက်မှာ ရှိနေစေဖို့ */
@@ -317,7 +319,7 @@ body::before {
 }
 
 /* ၃။ Input Field များ၊ Select Box များနှင့် Button များရဲ့ ပုံစံ */
-.filter-form input, 
+.filter-form input,
 .filter-form select,
 .filter-form button {
   width: 100%;               /* မိမိရဲ့ Wrapper box အကျယ်အတိုင်း အပြည့်ယူမယ် */
@@ -405,6 +407,8 @@ body::before {
 .timesheet-meta-grid input {
   width: 100%;
   min-width: 0;
+        margin: 0;             /* Remove extra margins */
+
 }
 
 .timesheet-remove-row {
@@ -795,7 +799,8 @@ input, select {
 
 .form-row {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    /* column */
     display: flex;
 
   flex-wrap: nowrap;       /* CRITICAL: Prevents elements from wrapping */
