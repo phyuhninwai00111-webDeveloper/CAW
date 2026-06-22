@@ -31,34 +31,32 @@
 
     <div class="timesheet-meta-grid">
         {{-- @if(!$isEdit) --}}
-            <label>
-            <span>Report Code</span>
-
-
-            <input type="text" name="report_code" value="{{ old('report_code', $report->report_code ?? $displayCode) }}" readonly required>
-            @error('report_code')<span class="error-message">{{ $message }}</span>@enderror
-            </label>
-            <label>
+             <label>
             <span>Date</span>
             <input type="date" name="report_date" value="{{ old('report_date', isset($report) ? $report->report_date->format('Y-m-d') : now()->toDateString()) }}" required>
             @error('report_date')<span class="error-message">{{ $message }}</span>@enderror
             </label>
+
+            <label>
+            {{-- <span>Report Code</span> --}}
+
+
+            <input type="hidden" name="report_code" value="{{ old('report_code', $report->report_code ?? $displayCode) }}" readonly required>
+            @error('report_code')<span class="error-message">{{ $message }}</span>@enderror
+            </label>
+
     </div>
 
     <div class="timesheet-rows" data-timesheet-rows>
-        <div class="timesheet-row "data-timesheet-row>
-                <label>
-                    <span>Project Name</span></label>
-                <label>
-                    <span>Functions</span> </label>
-                <label>
-                    <span>Status</span></label>
-                <label>
-                    <span>Remark</span></label>
+        <div class="timesheet-row" data-timesheet-row>
+                <label><span>Project Name</span></label>
+                <label><span>Functions</span> </label>
+                <label><span>Status</span></label>
+                <label><span>Remark</span></label>
                     <div></div>
-                {{-- </label><div></div></label> --}}
-
                 @foreach($formDetails as $index => $detail)
+
+
                     <textarea  name="details[{{ $index }}][project_name]" data-name="project_name" rows="1" required>{{ $detail['project_name'] ?? '' }}</textarea>
                     @error("details.$index.project_name")<span class="error-message">{{ $message }}</span>@enderror
 
@@ -77,7 +75,7 @@
                     <textarea name="details[{{ $index }}][remark]" data-name="remark" rows="1">{{ $detail['remark'] ?? '' }}</textarea>
                     @error("details.$index.remark")<span class="error-message">{{ $message }}</span>@enderror
 
-                <button type="button" class="btn btn-secondary timesheet-remove-row" data-remove-row>Remove</button>
+                <button type="button" class="btn btn-secondary btn-sm timesheet-remove-row"  data-remove-row>Remove</button>
         </div>
 
         @endforeach
@@ -86,7 +84,7 @@
 
     <div class="form-actions">
          @if(!$isEdit) <button type="button" class="btn btn-secondary" data-add-row>Add Row</button> @endif
-        <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Save Changes' : 'Create Timesheet' }}</button>
+         <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Save Changes' : 'Create Timesheet' }}</button>
     </div>
 </form>
 
@@ -121,16 +119,19 @@
 @once
     @push('scripts')
         <script>
-            var $form = $(this).closest('[data-timesheet-form]');
-            var remainingRows = $form.find('[data-timesheet-row]').length;
-            const isEditMode = window.location.search.includes('edit=1');
+           var $form = $(this).closest('[data-timesheet-form]');
+           var remainingRows = $form.find('[data-timesheet-row]').length;
+            //const isEditMode = window.location.search.includes('edit=1');
+
             function refreshTimesheetRows($form) {
                 $form.find('[data-timesheet-row]').each(function(index) {
                     $(this).find('[data-name]').each(function() {
                         $(this).attr('name', 'details[' + index + '][' + $(this).data('name') + ']');
                     });
                 });
-                
+
+            const isEditMode = window.location.search.includes('edit=1');
+            var remainingRows = $form.find('[data-timesheet-row]').length;
                 var canRemove = isEditMode || remainingRows > 1;
                 $form.find('[data-remove-row]').prop('disabled', !canRemove);
             }
@@ -149,29 +150,33 @@
 
                 //const currentMode = "{{ request()->query('mode') }}";
                 $(document).on('click', '[data-remove-row]', function() {
+                    var $row = $(this).closest('[data-timesheet-row]');
                     var $form = $(this).closest('[data-timesheet-form]');
                     var isEditMode = window.location.search.includes('edit=1');
+                    var remainingRows = $form.find('[data-timesheet-row]').length;
                     if ( !isEditMode && remainingRows <= 1) {
+                        alert('At least one row is required.');
                         return;
                     }
                     if (remainingRows < 1) {
                         var $form = $(this).closest('[data-timesheet-form]');
                          $form.hide();}
                          else {
-                    $(this).closest('[data-timesheet-row]').remove();
+                    $row.remove();
+                    // $(this).closest('[data-timesheet-row]').remove();
                     refreshTimesheetRows($form);
-            }
+                    }
         });
             });
 
         // Date ပြောင်းတိုင်း Code အသစ် Generate လုပ်မယ်
-        $('input[name="report_date"]').on('change', function() {
-        let date = $(this).val(); // ဥပမာ 2026-06-18
-        // နေ့စွဲပေါ်မူတည်ပြီး code အသစ်ဆောက် (TL- + ရက်စွဲ)
-        let formattedDate = date.replace(/-/g, '');
-        let newCode = "TL-" + formattedDate;
-        $('input[name="report_code"]').val(newCode);
-        });
+        // $('input[name="report_date"]').on('change', function() {
+        // let date = $(this).val(); // ဥပမာ 2026-06-18
+        // // နေ့စွဲပေါ်မူတည်ပြီး code အသစ်ဆောက် (TL- + ရက်စွဲ)
+        // let formattedDate = date.replace(/-/g, '');
+        // let newCode = "TL-" + formattedDate;
+        // $('input[name="report_code"]').val(newCode);
+        // });
 
         </script>
     @endpush

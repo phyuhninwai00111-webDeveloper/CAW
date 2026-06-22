@@ -11,7 +11,7 @@
         <p class="hero-copy">Create and review timesheets based on your role.</p>
       </div>
       <div class="hero-actions">
-        <a href="{{ route('attendance') }}" class="btn btn-primary">Add Attendance</a>
+        <a href="{{ route('attendance') }}" class="btn btn-primary btn-sm">Add Attendance</a>
       </div>
     </header>
 
@@ -33,48 +33,58 @@
       ])
     </section>
 
-    <section class="panel table-panel">
+    <section class="panel table-panel" id="filter-section">
       <div class="panel-header">
         <div>
           <h2>Timesheet Records</h2>
           <p class="panel-copy">Detailed reports are available from each record.</p>
         </div>
+        <button type="button" class="btn btn-secondary btn-sm" data-export-table="#timesheet-record">Export Excel</button>
       </div>
 
-      @if($isHr)
-        <form method="GET" action="{{ route('timesheets.index') }}" class="filter-form stacked-filter">
-          <label>
-            <span>Department</span>
-            <select name="department_id">
-              <option value="">All departments</option>
-              @foreach($departments as $department)
-                <option value="{{ $department->id }}" @selected((string) $selectedDepartmentId === (string) $department->id)>
-                  {{ $department->department_name }}
-                </option>
-              @endforeach
-            </select>
-          </label>
-          <button type="submit" class="btn btn-primary">Apply Filter</button>
-          @if($selectedDepartmentId)
-            <a href="{{ route('timesheets.index') }}" class="btn btn-secondary">Clear</a>
-          @endif
-        </form>
-      @endif
-
-      <div class="table-wrap">
-        <table class="attendance-table">
+      <form method="GET" action="{{ route('timesheets.index') }}#filter-section" class="filter-form stacked-filter">
+        @if($isHr)
+          <div class="filter-field">
+            <label>
+              <span>Department</span>
+              <select name="department_id" class="form-select d-inline-block form-select-sm" >
+                <option value="">All departments</option>
+                @foreach($departments as $department)
+                  <option value="{{ $department->id }}" @selected((string) $selectedDepartmentId === (string) $department->id)>
+                    {{ $department->department_name }}
+                  </option>
+                @endforeach
+              </select>
+            </label>
+          </div>
+        @endif
+        <label>
+          <span>Start Date</span>
+          <input type="date" name="start_date" value="{{ $selectedStartDate }}">
+        </label>
+        <label>
+          <span>End Date</span>
+          <input type="date" name="end_date" value="{{ $selectedEndDate }}">
+        </label>
+        <button type="submit" class="btn btn-primary">Apply Filter</button>
+        @if($selectedDepartmentId || $selectedStartDate || $selectedEndDate)
+          <a href="{{ route('timesheets.index') }}#filter-section" class="btn btn-secondary btn-sm" style="padding: 6px 19px !important;">Clear</a>
+        @endif
+      </form>
+      <div class="table-wrap personal-timesheet-scroll" >
+        <table class="attendance-table" id="timesheet-record">
           <thead>
             <tr>
-              <th>Report Code</th>
+              {{-- <th>Report Code</th> --}}
               <th>Date</th>
               <th>Status</th>
-              <th>Rows</th>
+              <th>Records</th>
               <th>Employee</th>
               @if($isHr)
                 <th>Department</th>
               @endif
               @if(request()->query('mode') !== 'view')
-              <th>Action</th>
+              <th data-export-ignore>Action</th>
               @endif
             </tr>
           </thead>
@@ -84,7 +94,7 @@
                 $latestDetail = $report->details->last();
               @endphp
               <tr>
-                <td>{{ $report->report_code }}</td>
+                {{-- <td>{{ $report->report_code }}</td> --}}
                 <td>{{ $report->report_date->format('Y-m-d') }}</td>
                 <td>{{ $latestDetail?->status ?? 'Pending' }}</td>
                 <td>{{ $report->details->count() }}</td>
@@ -92,7 +102,7 @@
                 @if($isHr)
                   <td>{{ $report->department_name ?? '-' }}</td>
                 @endif
-                <td><a href="{{ route('timesheets.show', [$report->report_code, 'mode' => 'view']) }}" class="btn btn-secondary">View</a></td>
+                <td data-export-ignore><a href="{{ route('timesheets.show', [$report->report_code, 'mode' => 'view']) }}" class="btn btn-secondary btn-sm" style="padding: 6px 12px;">View</a></td>
               </tr>
             @empty
               <tr>
@@ -105,3 +115,7 @@
     </section>
   </div>
 @endsection
+
+@push('scripts')
+  @include('timesheets._export_script')
+@endpush
