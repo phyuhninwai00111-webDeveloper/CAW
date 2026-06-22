@@ -52,7 +52,7 @@
         <span class="badge">{{ $report->details->count() }} {{ Str::plural('row', $report->details->count()) }}</span>
       </div>
 
-      <div class="table-wrap">
+      <div class="table-wrap personal-timesheet-scroll">
         <table class="attendance-table">
           <thead>
             <tr>
@@ -71,14 +71,14 @@
             @forelse($report->details as $detail)
               <tr>
                 <td>{{ $report->report_date->format('Y-m-d') }}</td>
-                <td>{{ $detail->project_name }}</td>
-                <td>{{ $detail->functions }}</td>
+                <td class="text-wrap">{{ $detail->project_name }}</td>
+                <td class="text-wrap">{{ $detail->functions }}</td>
                 <td>{{ $detail->status }}</td>
-                <td>{{ $detail->remark ?? '-' }}</td>
+                <td class="text-wrap">{{ $detail->remark ?? '-' }}</td>
                 @if(request()->query('mode') !== 'view')
                   <td><a href="{{ route('timesheets.show',
                    ['report_code' => $report->report_code, 'edit' => 1, 'detail_id' => $detail->id]). '?mode=edit' }}
-                   #edit-timesheet" class="btn btn-secondary">Edit</a></td>
+                   #edit-timesheet" class="btn btn-secondary btn-sm">Edit</a></td>
                 @endif
               </tr>
             @empty
