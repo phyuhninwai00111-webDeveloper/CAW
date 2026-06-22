@@ -21,10 +21,10 @@
 
 @section('content')
   <div class="page-shell">
-    <div class="attendance-page-actions">
+    <!-- <div class="attendance-page-actions">
       <a href="{{ route('dashboard') }}" class="btn btn-secondary page-back-btn">Back to Dashboard</a>
       <a href="#" id="logout" class="btn btn-secondary page-logout-btn">Logout</a>
-    </div>
+    </div> -->
 
     <header class="hero compact-hero">
       <div>
@@ -341,7 +341,7 @@ function load(filters){
         "pageLength": 10,
         "lengthChange": false,
         "pagingType": "simple",  // ⬅️ "simple_numbers" အစား "simple" လို့ ပြောင်းပါ (Previous နဲ့ Next ခလုတ်ပဲ ပြမည်)
-        "ordering": true,
+        "ordering": false,
         "searching": false,
         "destroy": true
       });
