@@ -14,6 +14,7 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $roleId = (int) $user->role_id;
+        $scope = $request->query('scope', 'all');
 
         $query = Attendance::query()
             ->select([
@@ -30,7 +31,9 @@ class AttendanceController extends Controller
                 ->on('daily_reports.report_date', '=', 'attendance.attendance_date');
     }); // This joins based on matching employee and date
 
-        if ($roleId === 2) {
+        if ($scope === 'my') {
+            $query->where('attendance.employee_code', $user->employee_code);
+        } elseif ($roleId === 2) {
             $query->where('users.department_id', $user->department_id);
         } elseif ($roleId === 3) {
             $query->where('attendance.employee_code', $user->employee_code);

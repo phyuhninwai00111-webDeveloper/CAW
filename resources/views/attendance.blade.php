@@ -41,6 +41,11 @@
       </div>
       
       <div class="hero-actions">
+      <!-- /btn-secondary SS -->
+      @if(auth()->user()->role_id === 1 || auth()->user()->role_id === 2)
+        <button type="button" id="btn-my-history" class="btn btn-primary">My History</button>
+        <button type="button" id="btn-all-records" class="btn btn-primary">All Records</button>
+      @endif
         <button type="button" id="btn-checkin" class="btn btn-primary">Check In</button>
         <button type="button" id="btn-checkout" class="btn btn-primary">Check Out</button>
       </div>
@@ -119,10 +124,11 @@ function isHrRole(roleId) {
 }
 
 function tableColumnCount(roleId) {
-  return isHrRole(roleId) ? 6 : 5;
+  return isHrRole(roleId) ? 5 : 4;//6:5
 }
 
 var timesheetUrlBase = '{{ url('/timesheets') }}';
+var attendanceScope = 'all';
 
 function renderTableHeader(roleId) {
   var html = '<tr>' +
@@ -398,7 +404,9 @@ startLiveClock();
 }
 
 function loadCurrentFilters() {
-  load($('#filters').serialize());
+  var filters = $('#filters').serialize();
+  filters += (filters ? '&' : '') + 'scope=' + encodeURIComponent(attendanceScope);
+  load(filters);
 }
 
 $('#filters').on('submit', function(e){
@@ -436,6 +444,18 @@ function submitAttendanceAction(url, title, successMessage) {
 $(function(){
   setDefaultDateRange();
   loadCurrentFilters();
+
+  $('#btn-my-history').on('click', function(e){
+    e.preventDefault();
+    attendanceScope = 'my';
+    loadCurrentFilters();
+  });
+
+  $('#btn-all-records').on('click', function(e){
+    e.preventDefault();
+    attendanceScope = 'all';
+    loadCurrentFilters();
+  });
 
   $('#btn-checkin').on('click', function(e){
     e.preventDefault();
