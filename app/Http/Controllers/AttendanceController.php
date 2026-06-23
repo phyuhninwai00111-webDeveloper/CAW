@@ -137,6 +137,9 @@ class AttendanceController extends Controller
         if ($roleId === 1 && $request->filled('department_id')) {
             $query->where('users.department_id', $request->query('department_id'));
         }
+        if (in_array($roleId, [1, 2], true) && $request->filled('employee_code')) {
+            $query->where('attendance.employee_code', 'like', '%' . $request->query('employee_code') . '%');
+        }
 
         if ($request->filled('from')) {
             $query->where('attendance.attendance_date', '>=', $request->query('from'));

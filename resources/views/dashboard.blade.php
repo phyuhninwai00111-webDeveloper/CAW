@@ -26,7 +26,9 @@
                     <h2>Filter summary</h2>
                     <p class="panel-copy" id="dashboard-filter-help">
                         @if ($isHr)
-                            Choose a date range or department to narrow the dashboard.
+                            Choose a date range, department, or employee code to narrow the dashboard.
+                        @elseif ($isHod)
+                            Choose a date range or employee code to narrow the dashboard.
                         @else
                             Choose a date range to narrow the dashboard.
                         @endif
@@ -47,11 +49,17 @@
                     <label>
                         <span>Department</span>
                         <select name="department_id" id="dashboard-department">
-                            <option value="">All departments</option>
+                            <option value="">-- Select department --</option>
                             @foreach ($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->department_name }}</option>
                             @endforeach
                         </select>
+                    </label>
+                @endif
+                @if ($isHr || $isHod)
+                    <label>
+                        <span>Employee Code</span>
+                        <input type="text" name="employee_code" id="dashboard-employee-code" placeholder="Employee code">
                     </label>
                 @endif
                 <button type="submit" class="btn btn-primary">Apply Filter</button>

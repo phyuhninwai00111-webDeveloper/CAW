@@ -132,4 +132,48 @@ class AttendanceFlowTest extends TestCase
         $this->assertTrue($names->contains($departmentStaff->name));
         $this->assertFalse($names->contains($otherStaff->name));
     }
+
+    public function test_hr_dashboard_summary_can_filter_by_employee_code(): void
+    {
+        $department = Department::create(['department_name' => 'Operations']);
+        $roleHr = Role::create(['role_name' => 'HR']);
+        $roleStaff = Role::create(['role_name' => 'Staff']);
+
+        $hr = User::factory()->create(['department_id' => $department->id, 'role_id' => $roleHr->id, 'employee_code' => 'EMP-HR']);
+        $staffA = User::factory()->create(['department_id' => $department->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-A001']);
+        $staffB = User::factory()->create(['department_id' => $department->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-B002']);
+
+        Attendance::create(['employee_code' => $staffA->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()->setTime(8, 30)]);
+        Attendance::create(['employee_code' => $staffB->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()->setTime(9, 30)]);
+
+        $this->actingAs($hr);
+
+        $response = $this->getJson('/dashboard/summary?employee_code=EMP-A001');
+
+        $response->assertStatus(200);
+        $response->assertJson(['total' => 1, 'late' => 0]);
+    }
+
+    public function test_hod_dashboard_summary_can_filter_by_employee_code_within_department(): void
+    {
+        $departmentA = Department::create(['department_name' => 'Operations']);
+        $departmentB = Department::create(['department_name' => 'Support']);
+        Role::create(['role_name' => 'HR']);
+        $roleHod = Role::create(['role_name' => 'HOD']);
+        $roleStaff = Role::create(['role_name' => 'Staff']);
+
+        $hod = User::factory()->create(['department_id' => $departmentA->id, 'role_id' => $roleHod->id, 'employee_code' => 'EMP-HOD']);
+        $departmentStaff = User::factory()->create(['department_id' => $departmentA->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-DEPT-A']);
+        $otherStaff = User::factory()->create(['department_id' => $departmentB->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-OTHER']);
+
+        Attendance::create(['employee_code' => $departmentStaff->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()->setTime(8, 30)]);
+        Attendance::create(['employee_code' => $otherStaff->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()->setTime(8, 45)]);
+
+        $this->actingAs($hod);
+
+        $response = $this->getJson('/dashboard/summary?employee_code=EMP-DEPT-A');
+
+        $response->assertStatus(200);
+        $response->assertJson(['total' => 1, 'late' => 0]);
+    }
 }
