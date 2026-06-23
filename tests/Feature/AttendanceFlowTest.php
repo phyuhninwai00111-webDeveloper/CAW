@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Attendance;
 use App\Models\Department;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -12,19 +13,14 @@ class AttendanceFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function seedRoles(): void
-    {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
-    }
-
     protected function createAuthenticatedUser(): User
     {
         $department = Department::create(['department_name' => 'Operations']);
-        $this->seedRoles();
+        $role = Role::create(['role_name' => 'Employee']);
 
         return User::factory()->create([
             'department_id' => $department->id,
-            'role_id' => 3,
+            'role_id' => $role->id,
             'employee_code' => 'EMP-3003',
         ]);
     }
@@ -79,133 +75,61 @@ class AttendanceFlowTest extends TestCase
         $response->assertJson(['total' => 1]);
     }
 
-    public function test_hr_dashboard_summary_shows_all_departments(): void
+    public function test_hr_can_switch_between_my_history_and_all_records(): void
     {
-        $this->seedRoles();
-        $departmentA = Department::create(['department_name' => 'Engineering']);
+        $departmentA = Department::create(['department_name' => 'Operations']);
         $departmentB = Department::create(['department_name' => 'Support']);
+        $roleHr = Role::create(['role_name' => 'HR']);
+        Role::create(['role_name' => 'HOD']);
+        $roleStaff = Role::create(['role_name' => 'Staff']);
 
-        $hr = User::factory()->create([
-            'department_id' => $departmentA->id,
-            'role_id' => 1,
-            'employee_code' => 'EMP-HR',
-        ]);
-        $staffA = User::factory()->create([
-            'department_id' => $departmentA->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-A',
-        ]);
-        $staffB = User::factory()->create([
-            'department_id' => $departmentB->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-B',
-        ]);
+        $hr = User::factory()->create(['department_id' => $departmentA->id, 'role_id' => $roleHr->id, 'employee_code' => 'EMP-HR']);
+        $staff = User::factory()->create(['department_id' => $departmentB->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-STAFF']);
 
-        Attendance::create([
-            'employee_code' => $staffA->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(8, 30),
-        ]);
-        Attendance::create([
-            'employee_code' => $staffB->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(9, 30),
-        ]);
+        Attendance::create(['employee_code' => $hr->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()]);
+        Attendance::create(['employee_code' => $staff->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()]);
 
         $this->actingAs($hr);
 
-        $response = $this->getJson('/dashboard/summary');
+        $myHistory = $this->getJson('/attendance/data?scope=my');
+        $myHistory->assertStatus(200);
+        $this->assertCount(1, $myHistory->json('data'));
+        $this->assertSame($hr->name, $myHistory->json('data.0.name'));
 
-        $response->assertStatus(200);
-        $response->assertJson([
-            'role_id' => 1,
-            'total' => 2,
-            'late' => 1,
-        ]);
+        $allRecords = $this->getJson('/attendance/data?scope=all');
+        $allRecords->assertStatus(200);
+        $this->assertCount(2, $allRecords->json('data'));
     }
 
-    public function test_hod_dashboard_summary_shows_department_only(): void
+    public function test_hod_can_switch_between_my_history_and_department_records(): void
     {
-        $this->seedRoles();
-        $departmentA = Department::create(['department_name' => 'Engineering']);
+        $departmentA = Department::create(['department_name' => 'Operations']);
         $departmentB = Department::create(['department_name' => 'Support']);
+        Role::create(['role_name' => 'HR']);
+        $roleHod = Role::create(['role_name' => 'HOD']);
+        $roleStaff = Role::create(['role_name' => 'Staff']);
 
-        $hod = User::factory()->create([
-            'department_id' => $departmentA->id,
-            'role_id' => 2,
-            'employee_code' => 'EMP-HOD',
-        ]);
-        $staffA = User::factory()->create([
-            'department_id' => $departmentA->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-A',
-        ]);
-        $staffB = User::factory()->create([
-            'department_id' => $departmentB->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-B',
-        ]);
+        $hod = User::factory()->create(['department_id' => $departmentA->id, 'role_id' => $roleHod->id, 'employee_code' => 'EMP-HOD']);
+        $departmentStaff = User::factory()->create(['department_id' => $departmentA->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-DEPT']);
+        $otherStaff = User::factory()->create(['department_id' => $departmentB->id, 'role_id' => $roleStaff->id, 'employee_code' => 'EMP-OTHER']);
 
-        Attendance::create([
-            'employee_code' => $staffA->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(8, 30),
-        ]);
-        Attendance::create([
-            'employee_code' => $staffB->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(8, 45),
-        ]);
+        Attendance::create(['employee_code' => $hod->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()]);
+        Attendance::create(['employee_code' => $departmentStaff->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()]);
+        Attendance::create(['employee_code' => $otherStaff->employee_code, 'attendance_date' => now()->toDateString(), 'check_in' => now()]);
 
         $this->actingAs($hod);
 
-        $response = $this->getJson('/dashboard/summary');
+        $myHistory = $this->getJson('/attendance/data?scope=my');
+        $myHistory->assertStatus(200);
+        $this->assertCount(1, $myHistory->json('data'));
+        $this->assertSame($hod->name, $myHistory->json('data.0.name'));
 
-        $response->assertStatus(200);
-        $response->assertJson([
-            'role_id' => 2,
-            'total' => 1,
-            'late' => 0,
-        ]);
-    }
-
-    public function test_staff_dashboard_summary_shows_own_record_only(): void
-    {
-        $this->seedRoles();
-        $departmentA = Department::create(['department_name' => 'Engineering']);
-        $departmentB = Department::create(['department_name' => 'Support']);
-
-        $staffA = User::factory()->create([
-            'department_id' => $departmentA->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-A',
-        ]);
-        $staffB = User::factory()->create([
-            'department_id' => $departmentB->id,
-            'role_id' => 3,
-            'employee_code' => 'EMP-B',
-        ]);
-
-        Attendance::create([
-            'employee_code' => $staffA->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(8, 30),
-        ]);
-        Attendance::create([
-            'employee_code' => $staffB->employee_code,
-            'attendance_date' => now()->toDateString(),
-            'check_in' => now()->setTime(9, 30),
-        ]);
-
-        $this->actingAs($staffA);
-
-        $response = $this->getJson('/dashboard/summary');
-
-        $response->assertStatus(200);
-        $response->assertJson([
-            'role_id' => 3,
-            'total' => 1,
-            'late' => 0,
-        ]);
+        $allRecords = $this->getJson('/attendance/data?scope=all');
+        $allRecords->assertStatus(200);
+        $this->assertCount(2, $allRecords->json('data'));
+        $names = collect($allRecords->json('data'))->pluck('name');
+        $this->assertTrue($names->contains($hod->name));
+        $this->assertTrue($names->contains($departmentStaff->name));
+        $this->assertFalse($names->contains($otherStaff->name));
     }
 }

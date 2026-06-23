@@ -1,13 +1,30 @@
 @extends('layouts.app')
-
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<style>
+  .dataTables_paginate {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-top: 15px !important;
+  }
+  .dataTables_paginate .paginate_button {
+    padding: 5px 10px !important;
+    cursor: pointer !important;
+    color: #fff !important; /* စာသားအရောင် */
+  }
+  .dataTables_filter {
+    margin-bottom: 15px !important;
+  }
+</style>
 @section('title', 'Attendance - Attendance')
 
 @section('content')
   <div class="page-shell">
-    <div class="attendance-page-actions">
+    <!-- <div class="attendance-page-actions">
       <a href="{{ route('dashboard') }}" class="btn btn-secondary page-back-btn">Back to Dashboard</a>
       <a href="#" id="logout" class="btn btn-secondary page-logout-btn">Logout</a>
-    </div>
+    </div> -->
 
     <header class="hero compact-hero">
       <div>
@@ -24,6 +41,11 @@
       </div>
       
       <div class="hero-actions">
+      <!-- /btn-secondary SS -->
+      @if(auth()->user()->role_id === 1 || auth()->user()->role_id === 2)
+        <button type="button" id="btn-my-history" class="btn btn-primary">My History</button>
+        <button type="button" id="btn-all-records" class="btn btn-primary">All Records</button>
+      @endif
         <button type="button" id="btn-checkin" class="btn btn-primary">Check In</button>
         <button type="button" id="btn-checkout" class="btn btn-primary">Check Out</button>
       </div>
@@ -84,7 +106,9 @@
               <th>Check Out</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+         
+          </tbody>
         </table>
       </div>
     </section>
@@ -92,16 +116,19 @@
 @endsection
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script>
 function isHrRole(roleId) {
   return Number(roleId) === 1;
 }
 
 function tableColumnCount(roleId) {
-  return isHrRole(roleId) ? 6 : 5;
+  return isHrRole(roleId) ? 5 : 4;//6:5
 }
 
 var timesheetUrlBase = '{{ url('/timesheets') }}';
+var attendanceScope = 'all';
 
 function renderTableHeader(roleId) {
   var html = '<tr>' +
@@ -273,7 +300,7 @@ function applyRoleControls(roleId) {
   $('#attendance-filter-copy').text(isHr ? 'Filter by date range, department, and employee code.' : (canSearchEmployeeCode ? 'Filter by date range and employee code.' : 'Filter by date range.'));
   $('#filter-help').text(isHr ? 'Choose a date range, department, or employee code to narrow the attendance list.' : (canSearchEmployeeCode ? 'Choose a date range or employee code to narrow the attendance list.' : 'Choose a date range to narrow the attendance list.'));
 }
-function load(filters){
+/*function load(filters){
   $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){
       if (res.error) {
@@ -289,7 +316,46 @@ function load(filters){
       $('#tbl tbody').html('<tr><td colspan="5" class="empty-state">Failed to load attendance records.</td></tr>');
     });
 }
+*/
+function load(filters){
+  $.getJSON('{{ route('attendance.data') }}', filters)
+    .done(function(res){
+      if (res.error) {
+        $('#tbl tbody').html('<tr><td colspan="' + tableColumnCount(res.role_id) + '" class="empty-state">' + res.error + '</td></tr>');
+        return;
+      }
 
+      // ၁။ လက်ရှိ ရှိနေပြီးသား DataTable ကို ဖျက်ပစ်ပါ (ရှိခဲ့လျှင်)
+      if ($.fn.DataTable.isDataTable('#tbl')) {
+        $('#tbl').DataTable().destroy();
+      }
+
+      applyRoleControls(res.role_id);
+      renderTableHeader(res.role_id);
+      renderRows(res.data || [], res.role_id);
+
+      // ၂။ Table ထဲ data ရောက်သွားပြီဖြစ်လို့ DataTable စနစ်ကို စတင်သက်ဝင်စေပါမည်
+      // $('#tbl').DataTable({
+      //   "pageLength": 10,                 // ၁ခါပြရင် ၁၀ ကြောင်းပဲ ပြမည်
+      //   //"lengthMenu": [10, 25, 50, 100],  // စိတ်ကြိုက် အရေအတွက် ရွေးချယ်ရန်
+      //   //"ordering": true,                 // Column sorting ပေးမည်
+      //   "searching": true,                // Search box ထည့်မည်
+      //   "destroy": true                   // အသစ်ပြန်ဆောက်ခွင့်ပြုမည်
+      // });
+      // 🛠️ load(filters) ထဲက ဒီအပိုင်းကို အခုလို ပြင်လိုက်ပါ
+      $('#tbl').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "pagingType": "simple",  // ⬅️ "simple_numbers" အစား "simple" လို့ ပြောင်းပါ (Previous နဲ့ Next ခလုတ်ပဲ ပြမည်)
+        "ordering": false,
+        "searching": false,
+        "destroy": true
+      });
+    })
+    .fail(function(){
+      $('#tbl tbody').html('<tr><td colspan="5" class="empty-state">Failed to load attendance records.</td></tr>');
+    });
+}
 function formatDateInput(date) {
   var month = String(date.getMonth() + 1).padStart(2, '0');
   var day = String(date.getDate()).padStart(2, '0');
@@ -338,7 +404,9 @@ startLiveClock();
 }
 
 function loadCurrentFilters() {
-  load($('#filters').serialize());
+  var filters = $('#filters').serialize();
+  filters += (filters ? '&' : '') + 'scope=' + encodeURIComponent(attendanceScope);
+  load(filters);
 }
 
 $('#filters').on('submit', function(e){
@@ -376,6 +444,18 @@ function submitAttendanceAction(url, title, successMessage) {
 $(function(){
   setDefaultDateRange();
   loadCurrentFilters();
+
+  $('#btn-my-history').on('click', function(e){
+    e.preventDefault();
+    attendanceScope = 'my';
+    loadCurrentFilters();
+  });
+
+  $('#btn-all-records').on('click', function(e){
+    e.preventDefault();
+    attendanceScope = 'all';
+    loadCurrentFilters();
+  });
 
   $('#btn-checkin').on('click', function(e){
     e.preventDefault();

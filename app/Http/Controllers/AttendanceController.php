@@ -10,47 +10,35 @@ use Carbon\Carbon; // ဖိုင်ရဲ့ အပေါ်ဆုံးမှ
 
 class AttendanceController extends Controller
 {
-    protected function baseAttendanceQuery(bool $includeReportCode = false)
+    public function index(Request $request)
     {
+        $user = Auth::user();
+        $roleId = (int) $user->role_id;
+        $scope = $request->query('scope', 'all');
+
         $query = Attendance::query()
             ->select([
                 'attendance.*',
                 'users.name',
                 'users.employee_code',
-                'users.department_id',
                 'departments.department_name',
+                'daily_reports.report_code' // Add this line
             ])
             ->join('users', 'users.employee_code', '=', 'attendance.employee_code')
-            ->leftJoin('departments', 'departments.id', '=', 'users.department_id');
+            ->leftJoin('departments', 'departments.id', '=', 'users.department_id')
+            ->leftJoin('daily_reports', function($join) {
+                $join->on('daily_reports.employee_code', '=', 'attendance.employee_code')
+                ->on('daily_reports.report_date', '=', 'attendance.attendance_date');
+    }); // This joins based on matching employee and date
 
-        if ($includeReportCode) {
-            $query->addSelect('daily_reports.report_code')
-                ->leftJoin('daily_reports', function ($join) {
-                    $join->on('daily_reports.employee_code', '=', 'attendance.employee_code')
-                        ->on('daily_reports.report_date', '=', 'attendance.attendance_date');
-                });
-        }
-
-        return $query;
-    }
-
-    protected function applyRoleScope($query, $user, int $roleId): void
-    {
-        if ($roleId === 1) {
-            return;
-        }
-
-        if ($roleId === 2) {
+        if ($scope === 'my') {
+            $query->where('attendance.employee_code', $user->employee_code);
+        } elseif ($roleId === 2) {
             $query->where('users.department_id', $user->department_id);
-
-            return;
+        } elseif ($roleId === 3) {
+            $query->where('attendance.employee_code', $user->employee_code);
         }
 
-        $query->where('attendance.employee_code', $user->employee_code);
-    }
-
-    protected function applyAttendanceFilters($query, Request $request, int $roleId): void
-    {
         if ($request->filled('from')) {
             $query->where('attendance.attendance_date', '>=', $request->query('from'));
         }
@@ -60,24 +48,9 @@ class AttendanceController extends Controller
         if ($roleId === 1 && $request->filled('department_id')) {
             $query->where('users.department_id', $request->query('department_id'));
         }
-        if (in_array($roleId, [1, 2], true) && $request->filled('employee_code')) {
+        if (($roleId === 1 || $roleId === 2) && $request->filled('employee_code')) {
             $query->where('attendance.employee_code', 'like', '%' . $request->query('employee_code') . '%');
         }
-    }
-
-    protected function isLateCheckIn($checkIn): bool
-    {
-        return $checkIn && Carbon::parse($checkIn)->format('H:i:s') > '09:00:00';
-    }
-
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        $roleId = (int) $user->role_id;
-
-        $query = $this->baseAttendanceQuery(true);
-        $this->applyRoleScope($query, $user, $roleId);
-        $this->applyAttendanceFilters($query, $request, $roleId);
 
         $rows = $query->orderBy('attendance_date', 'desc')->orderBy('check_in', 'desc')->get()->map(function ($attendance) {
             return [
@@ -151,18 +124,35 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $roleId = (int) $user->role_id;
 
-        $query = $this->baseAttendanceQuery();
-        $this->applyRoleScope($query, $user, $roleId);
-        $this->applyAttendanceFilters($query, $request, $roleId);
+        $query = Attendance::query()
+            ->select(['attendance.*', 'users.department_id', 'departments.department_name'])
+            ->join('users', 'users.employee_code', '=', 'attendance.employee_code')
+            ->leftJoin('departments', 'departments.id', '=', 'users.department_id');
+
+        if ($roleId === 2) {
+            $query->where('users.department_id', $user->department_id);
+        } elseif ($roleId === 3) {
+            $query->where('attendance.employee_code', $user->employee_code);
+        }
+        if ($roleId === 1 && $request->filled('department_id')) {
+            $query->where('users.department_id', $request->query('department_id'));
+        }
+
+        if ($request->filled('from')) {
+            $query->where('attendance.attendance_date', '>=', $request->query('from'));
+        }
+        if ($request->filled('to')) {
+            $query->where('attendance.attendance_date', '<=', $request->query('to'));
+        }
 
         $rows = $query->orderBy('attendance.attendance_date')->get();
         $total = $rows->count();
-        $late = $rows->filter(fn ($row) => $this->isLateCheckIn($row->check_in))->count();
+        $late = $rows->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count();
         $byDate = $rows->groupBy(fn ($row) => Carbon::parse($row->attendance_date)->format('Y-m-d'))
             ->map(fn ($items, $date) => [
                 'label' => $date,
                 'total' => $items->count(),
-                'late' => $items->filter(fn ($row) => $this->isLateCheckIn($row->check_in))->count(),
+                'late' => $items->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count(),
             ])
             ->values();
         $byDepartment = $rows->groupBy(fn ($row) => $row->department_name ?: 'No department')
@@ -173,7 +163,6 @@ class AttendanceController extends Controller
             ->values();
 
         return response()->json([
-            'role_id' => $roleId,
             'total' => $total,
             'late' => $late,
             'byDate' => $byDate,

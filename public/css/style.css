@@ -90,6 +90,47 @@ body::before {
   background: #7dd3fc;
 }
 
+.app-navbar-dropdown {
+  position: relative;
+}
+
+.app-navbar-dropdown-toggle {
+  appearance: none;
+}
+
+.app-navbar-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: none;
+  min-width: 190px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow: var(--shadow);
+}
+
+.app-navbar-dropdown:hover .app-navbar-dropdown-menu,
+.app-navbar-dropdown:focus-within .app-navbar-dropdown-menu {
+  display: block;
+}
+
+.app-navbar-dropdown-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.app-navbar-dropdown-item:hover,
+.app-navbar-dropdown-item.is-active {
+  color: #082f49;
+  background: #7dd3fc;
+}
+
 .app-navbar-form {
   margin: 0;
 }
@@ -171,7 +212,7 @@ body::before {
   align-items: center;
   justify-content: center;
   padding: 12px 18px;
-  border-radius: 999px;
+  border-radius: 80px;
   text-decoration: none;
   font-weight: 700;
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
@@ -283,10 +324,12 @@ body::before {
   display: flex;
   flex-wrap: nowrap;
   align-items: end;
+  /* end */
   gap: 14px;
 }
 
-.filter-form label,span {
+.filter-form label,
+.filter-form label span {
   display: flex;
   flex-direction: column;
 
@@ -294,6 +337,7 @@ body::before {
   gap: 10px;
   color: var(--muted);
   font-weight: 700;
+  margin-bottom: 0;
   /* min-width: 150px; */
 }
 /* ၁။ Form တစ်ခုလုံးကို Flexbox ပြောင်းပြီး တစ်တန်းတည်း စီခိုင်းတာ */
@@ -307,7 +351,7 @@ body::before {
 }
 
 /* ၂။ Filter Input တစ်ခုချင်းစီရဲ့ Box (Label နှင့် Slot များ) */
-.filter-form > label, 
+.filter-form > label,
 .filter-form > span {
   display: flex;
   flex-direction: column;    /* "From" ဆိုတဲ့စာသားက အပေါ်၊ Box က အောက်မှာ ရှိနေစေဖို့ */
@@ -317,7 +361,7 @@ body::before {
 }
 
 /* ၃။ Input Field များ၊ Select Box များနှင့် Button များရဲ့ ပုံစံ */
-.filter-form input, 
+.filter-form input,
 .filter-form select,
 .filter-form button {
   width: 100%;               /* မိမိရဲ့ Wrapper box အကျယ်အတိုင်း အပြည့်ယူမယ် */
@@ -405,10 +449,12 @@ body::before {
 .timesheet-meta-grid input {
   width: 100%;
   min-width: 0;
+        margin: 0;             /* Remove extra margins */
+
 }
 
 .timesheet-remove-row {
-  min-height: 46px;
+  min-height: 40px;
 }
 
 .timesheet-remove-row:disabled {
@@ -801,7 +847,8 @@ input, select {
 
 .form-row {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    /* column */
     display: flex;
 
   flex-wrap: nowrap;       /* CRITICAL: Prevents elements from wrapping */
@@ -845,8 +892,15 @@ input, select {
 
   .app-navbar-links,
   .app-navbar-form,
+  .app-navbar-dropdown,
   .app-navbar-link {
     width: 100%;
+  }
+
+  .app-navbar-dropdown-menu {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
   }
 }
 
@@ -855,4 +909,161 @@ input, select {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+.filter-field {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.filter-form > label,
+.filter-form .filter-field {
+  flex: 1 1 180px;
+}
+
+.filter-form .btn,
+.filter-form a.btn {
+  min-height: 38px;
+}
+
+.table-wrap {
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.attendance-table {
+  min-width: 680px;
+}
+
+.personal-timesheet-scroll {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.personal-timesheet-scroll .attendance-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+@media (max-width: 1024px) {
+  .page-shell {
+    max-width: 100%;
+  }
+
+  .panel-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .panel-header > .hero-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 800px) {
+  .page-shell {
+    padding: 24px 14px 44px;
+  }
+
+  .hero,
+  .panel,
+  .auth-card {
+    border-radius: 18px;
+  }
+
+  .hero,
+  .panel {
+    padding: 20px;
+  }
+
+  .filter-form,
+  .filter-form.stacked-filter,
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-form > label,
+  .filter-form .filter-field,
+  .filter-form input,
+  .filter-form select,
+  .filter-form textarea,
+  .filter-form .btn,
+  .filter-form a.btn,
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .btn {
+    flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-navbar {
+    padding: 12px 14px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+  }
+
+  .panel-header > *,
+  .panel-header .hero-actions,
+  .panel-header .btn {
+    width: 100%;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding: 10px 12px;
+  }
+
+  .btn {
+    min-height: 40px;
+    text-align: center;
+  }
+
+  .timesheet-form input,
+  .timesheet-form select,
+  .timesheet-form textarea {
+    min-width: 0;
+    width: 100%;
+  }
+}
+.text-wrap {
+    max-width: 200px;           /* Adjust this width as needed */
+    word-wrap: break-word;      /* Breaks long words */
+    word-break: break-all;      /* Ensures breaks happen even for long strings */
+    white-space: normal;        /* Allows the text to wrap into multiple lines */
+}
+/* Width of the scrollbar */
+.table-wrap::-webkit-scrollbar {
+    height: 8px; /* For horizontal scroll */
+    width: 8px;  /* For vertical scroll */
+}
+
+/* Background of the scrollbar track */
+.table-wrap::-webkit-scrollbar-track {
+    background: #1a1e2e; /* Dark background matching your theme */
+    border-radius: 4px;
+}
+
+/* The draggable scroll handle */
+.table-wrap::-webkit-scrollbar-thumb {
+    background: #374151; /* A lighter gray for contrast */
+    border-radius: 4px;
+}
+
+/* Handle on hover */
+.table-wrap::-webkit-scrollbar-thumb:hover {
+    background: #4b5563; /* Brighter on hover for better UX */
 }

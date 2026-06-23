@@ -53,12 +53,28 @@ class TimesheetController extends Controller
 
     public function index(Request $request)
     {
+        $data = $request->validate([
+            'department_id' => ['nullable', 'integer'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+
         $user = Auth::user();
         $isHr = (int) $user->role_id === 1;
         $query = $this->reportQuery();
+        $selectedStartDate = $data['start_date'] ?? null;
+        $selectedEndDate = $data['end_date'] ?? null;
 
-        if ($isHr && $request->filled('department_id')) {
-            $query->where('users.department_id', $request->query('department_id'));
+        if ($isHr && ! empty($data['department_id'])) {
+            $query->where('users.department_id', $data['department_id']);
+        }
+
+        if ($selectedStartDate) {
+            $query->whereDate('daily_reports.report_date', '>=', $selectedStartDate);
+        }
+
+        if ($selectedEndDate) {
+            $query->whereDate('daily_reports.report_date', '<=', $selectedEndDate);
         }
 
         $reports = $query->with('details')->orderBy('report_date', 'desc')->get();
@@ -69,12 +85,55 @@ class TimesheetController extends Controller
         return view('timesheets.index', [
             'reports' => $reports,
             'departments' => Department::orderBy('department_name')->get(),
-            'selectedDepartmentId' => $request->query('department_id'),
+            'selectedDepartmentId' => $data['department_id'] ?? null,
+            'selectedStartDate' => $selectedStartDate,
+            'selectedEndDate' => $selectedEndDate,
             'displayCode' => $existingReport ? $existingReport->report_code : 'TL-' . strtoupper(Str::random(6)),
             'isExisting' => (bool) $existingReport,
             'isHr' => $isHr,
             'canSearchEmployeeCode' => in_array((int) $user->role_id, [1, 2], true),
             'existingCode' => $existingReport?->report_code,
+        ]);
+    }
+
+    public function personal(Request $request)
+    {
+        $data = $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+
+        $user = Auth::user();
+        $selectedStartDate = $data['start_date'] ?? null;
+        $selectedEndDate = $data['end_date'] ?? null;
+        $defaultStartDate = now()->subDays(6)->startOfDay();
+        $defaultEndDate = now()->endOfDay();
+
+        $reports = DailyReport::with('details')
+            ->where('employee_code', $user->employee_code)
+            ->when($selectedStartDate || $selectedEndDate, function ($query) use ($selectedStartDate, $selectedEndDate) {
+                if ($selectedStartDate) {
+                    $query->whereDate('report_date', '>=', $selectedStartDate);
+                }
+
+                if ($selectedEndDate) {
+                    $query->whereDate('report_date', '<=', $selectedEndDate);
+                }
+            }, function ($query) use ($defaultStartDate, $defaultEndDate) {
+                $query->whereBetween('report_date', [
+                    $defaultStartDate->toDateString(),
+                    $defaultEndDate->toDateString(),
+                ]);
+            })
+            ->orderBy('report_date', 'desc')
+            ->get();
+
+        return view('timesheets.personal', [
+            'reports' => $reports,
+            'selectedStartDate' => $selectedStartDate,
+            'selectedEndDate' => $selectedEndDate,
+            'defaultStartDate' => $defaultStartDate,
+            'defaultEndDate' => $defaultEndDate,
         ]);
     }
 
@@ -88,6 +147,7 @@ class TimesheetController extends Controller
             abort(403);
         }
 
+
         return view('timesheets.show', [
             'report' => $report,
             'canEdit' => $this->canEditReport($report),
@@ -99,16 +159,18 @@ class TimesheetController extends Controller
         $data = $this->validatedTimesheet($request);
         $user = Auth::user();
 
+        $empSuffix = substr($user->employee_code, -3);
+        $generatedCode = 'TL-' . str_replace('-', '', $data['report_date']). '-' . $empSuffix;
         $report = DailyReport::firstOrCreate(
             [
                 'employee_code' => $user->employee_code,
                 'report_date' => $data['report_date'],
             ],
             [
-                'report_code' => $data['report_code'],
+                'report_code' => $generatedCode,
             ]
         );
-
+//$data['report_code']
         foreach ($data['details'] as $detail) {
             $report->details()->create($detail);
         }
@@ -132,10 +194,18 @@ class TimesheetController extends Controller
 
         $data = $this->validatedTimesheet($request, $report->report_code);
         $report->update(['report_date' => $data['report_date']]);
-        $report->details()->delete();
 
-        foreach ($data['details'] as $detail) {
-            $report->details()->create($detail);
+        if (! empty($data['detail_id'])) {
+            $report->details()
+                ->whereKey($data['detail_id'])
+                ->firstOrFail()
+                ->update($data['details'][0]);
+        } else {
+            $report->details()->delete();
+
+            foreach ($data['details'] as $detail) {
+                $report->details()->create($detail);
+            }
         }
 
         Attendance::where('employee_code', $report->employee_code)
@@ -161,6 +231,7 @@ class TimesheetController extends Controller
         $data = $request->validate([
             'report_date' => ['required', 'date'],
             'report_code' => ['required', 'string'],
+            'detail_id' => ['nullable', 'integer'],
             'details' => ['required', 'array', 'min:1'],
             'details.*.project_name' => ['required', 'string'],
             'details.*.functions' => ['required', 'string'],
