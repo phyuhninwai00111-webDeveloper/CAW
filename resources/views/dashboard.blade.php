@@ -8,10 +8,55 @@
             <div>
                 <p class="eyebrow">Company Attendance</p>
                 <h1>Attendance Dashboard</h1>
-                <p class="hero-copy">Track attendance activity at a glance and review the latest totals.</p>
+                <p class="hero-copy" id="dashboard-copy">
+                    @if ($isHr)
+                        Review company-wide attendance totals and late entries across all departments.
+                    @elseif ($isHod)
+                        Review attendance totals and late entries for your department.
+                    @else
+                        Review your personal attendance totals and late entries.
+                    @endif
+                </p>
+            </div>
+        </header>
+
+        <section class="panel filter-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Filter summary</h2>
+                    <p class="panel-copy" id="dashboard-filter-help">
+                        @if ($isHr)
+                            Choose a date range or department to narrow the dashboard.
+                        @else
+                            Choose a date range to narrow the dashboard.
+                        @endif
+                    </p>
+                </div>
             </div>
 
-        </header>
+            <form id="dashboardFilters" class="filter-form">
+                <label>
+                    <span>From</span>
+                    <input type="date" name="from" id="dashboard-from">
+                </label>
+                <label>
+                    <span>To</span>
+                    <input type="date" name="to" id="dashboard-to">
+                </label>
+                @if ($isHr)
+                    <label>
+                        <span>Department</span>
+                        <select name="department_id" id="dashboard-department">
+                            <option value="">All departments</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->department_name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                @endif
+                <button type="submit" class="btn btn-primary">Apply Filter</button>
+            </form>
+        </section>
 
         <section class="stats-grid" id="summary" aria-live="polite">
             <article class="stat-card loading-card">
@@ -30,27 +75,37 @@
             <article class="panel chart-panel">
                 <div class="panel-header">
                     <div>
-                        <h2>Attendance Trend</h2>
-                        <p class="panel-copy">Daily total records and late entries.</p>
+                        <h2>Attendance Breakdown</h2>
+                        <p class="panel-copy">On-time vs late entries for the selected range.</p>
                     </div>
                 </div>
                 <canvas id="trendChart" height="260"></canvas>
             </article>
-            <article class="panel chart-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Department Totals</h2>
-                        <p class="panel-copy">Attendance volume grouped by department.</p>
+            @if ($isHr || $isHod)
+                <article class="panel chart-panel" id="department-chart-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Department Totals</h2>
+                            <p class="panel-copy">
+                                @if ($isHr)
+                                    Attendance volume grouped by department.
+                                @else
+                                    Attendance volume within your department.
+                                @endif
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <canvas id="departmentChart" height="260"></canvas>
-            </article>
+                    <canvas id="departmentChart" height="260"></canvas>
+                </article>
+            @endif
         </section>
     </div>
 @endsection
 
 @push('scripts')
 <script>
+var dashboardRoleId = {{ (int) $roleId }};
+
 function renderSummary(res) {
     var total = Number(res.total || 0);
     var late = Number(res.late || 0);
@@ -83,8 +138,12 @@ function setDefaultDashboardRange() {
     $('#dashboard-to').val(formatDateInput(today));
 }
 
-function drawBarChart(canvasId, rows, valueKey, color) {
+function drawPieChart(canvasId, slices) {
     var canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        return;
+    }
+
     var ctx = canvas.getContext('2d');
     var width = canvas.clientWidth || canvas.parentElement.clientWidth;
     var height = Number(canvas.getAttribute('height')) || 260;
@@ -95,47 +154,144 @@ function drawBarChart(canvasId, rows, valueKey, color) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    rows = rows || [];
-    if (!rows.length) {
+    slices = (slices || []).filter(function(slice) {
+        return Number(slice.value || 0) > 0;
+    });
+
+    if (!slices.length) {
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '14px Segoe UI, Arial';
         ctx.fillText('No data for the selected filters.', 18, 42);
         return;
     }
 
-    var padding = 36;
-    var chartWidth = width - padding * 2;
-    var chartHeight = height - padding * 2;
-    var max = Math.max.apply(null, rows.map(function(row) { return Number(row[valueKey] || 0); })) || 1;
-    var barWidth = Math.max(12, chartWidth / rows.length - 10);
+    var total = slices.reduce(function(sum, slice) {
+        return sum + Number(slice.value || 0);
+    }, 0);
 
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.28)';
+    var paddingLeft = 18;
+    var paddingRight = 16;
+    var paddingTop = 22;
+    var paddingBottom = 22;
+    var legendGap = 20;
+    var legendSwatch = 12;
+    var legendSwatchGap = 8;
+    var legendLineHeight = 22;
+
+    ctx.font = '12px Segoe UI, Arial';
+
+    var legendItems = slices.map(function(slice) {
+        var value = Number(slice.value || 0);
+        var percent = Math.round((value / total) * 100);
+        var text = slice.label + ' (' + value.toLocaleString() + ', ' + percent + '%)';
+
+        return {
+            color: slice.color,
+            text: text,
+            textWidth: ctx.measureText(text).width
+        };
+    });
+
+    var maxTextWidth = Math.max.apply(null, legendItems.map(function(item) {
+        return item.textWidth;
+    }).concat([0]));
+    var legendWidth = legendSwatch + legendSwatchGap + maxTextWidth;
+    var legendBlockHeight = legendItems.length * legendLineHeight;
+    var legendX = Math.max(paddingLeft + 80, width - paddingRight - legendWidth);
+    var pieZoneRight = legendX - legendGap;
+    var pieZoneWidth = pieZoneRight - paddingLeft;
+    var pieZoneHeight = height - paddingTop - paddingBottom;
+
+    var radius = Math.min(pieZoneWidth * 0.44, pieZoneHeight * 0.46, 84);
+    radius = Math.max(radius, 34);
+
+    var centerX = paddingLeft + radius + 4;
+    if (centerX + radius + legendGap > legendX) {
+        radius = Math.max(30, (legendX - legendGap - paddingLeft - 4) / 2);
+        centerX = paddingLeft + radius + 4;
+    }
+
+    var centerY = paddingTop + pieZoneHeight / 2;
+    var startAngle = -Math.PI / 2;
+
+    slices.forEach(function(slice) {
+        var value = Number(slice.value || 0);
+        var sliceAngle = (value / total) * Math.PI * 2;
+        var endAngle = startAngle + sliceAngle;
+
+        ctx.fillStyle = slice.color;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fill();
+
+        if (sliceAngle > 0.18) {
+            var midAngle = startAngle + sliceAngle / 2;
+            var labelX = centerX + Math.cos(midAngle) * (radius * 0.62);
+            var labelY = centerY + Math.sin(midAngle) * (radius * 0.62);
+            var percent = Math.round((value / total) * 100);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 12px Segoe UI, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(percent + '%', labelX, labelY);
+        }
+
+        startAngle = endAngle;
+    });
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, height - padding);
-    ctx.lineTo(width - padding, height - padding);
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    rows.forEach(function(row, index) {
-        var value = Number(row[valueKey] || 0);
-        var barHeight = (value / max) * chartHeight;
-        var x = padding + index * (chartWidth / rows.length) + 5;
-        var y = height - padding - barHeight;
+    var legendY = centerY - legendBlockHeight / 2 + legendLineHeight - 2;
+    legendY = Math.max(paddingTop + legendLineHeight, legendY);
+    legendY = Math.min(legendY, height - paddingBottom - (legendItems.length - 1) * legendLineHeight);
 
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, barWidth, barHeight);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '12px Segoe UI, Arial';
+
+    legendItems.forEach(function(item) {
+        ctx.fillStyle = item.color;
+        ctx.fillRect(legendX, legendY - 10, legendSwatch, legendSwatch);
+
         ctx.fillStyle = '#e2e8f0';
-        ctx.font = '12px Segoe UI, Arial';
-        ctx.fillText(String(value), x, Math.max(18, y - 8));
+        ctx.fillText(item.text, legendX + legendSwatch + legendSwatchGap, legendY);
+
+        legendY += legendLineHeight;
     });
 }
 
 function drawTrendChart(rows) {
-    drawBarChart('trendChart', rows, 'total', '#67e8f9');
+    var total = 0;
+    var late = 0;
+
+    (rows || []).forEach(function(row) {
+        total += Number(row.total || 0);
+        late += Number(row.late || 0);
+    });
+
+    drawPieChart('trendChart', [
+        { label: 'On time', value: Math.max(0, total - late), color: '#67e8f9' },
+        { label: 'Late entries', value: late, color: '#fb7185' }
+    ]);
 }
 
 function drawDepartmentChart(rows) {
-    drawBarChart('departmentChart', rows, 'total', '#34d399');
+    var colors = ['#67e8f9', '#34d399', '#fb7185', '#a78bfa', '#fbbf24', '#60a5fa', '#f472b6'];
+
+    drawPieChart('departmentChart', (rows || []).map(function(row, index) {
+        return {
+            label: row.label || 'Unknown',
+            value: Number(row.total || 0),
+            color: colors[index % colors.length]
+        };
+    }));
 }
 
 function loadSummary(){

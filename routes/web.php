@@ -14,9 +14,14 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
+        $user = auth()->user();
+        $roleId = (int) $user->role_id;
+
         return view('dashboard', [
             'departments' => Department::orderBy('department_name')->get(),
-            'isHr' => (int) auth()->user()->role_id === 1,
+            'roleId' => $roleId,
+            'isHr' => $roleId === 1,
+            'isHod' => $roleId === 2,
         ]);
     })->name('dashboard');
 
