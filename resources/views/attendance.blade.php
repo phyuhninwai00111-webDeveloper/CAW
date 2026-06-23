@@ -1,5 +1,11 @@
 @extends('layouts.app')
+
+@push('head')
+  @include('components.datatables')
+@endpush
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+{{-- do you think this link is required --}}
+{{-- this code is mine --}}
 <style>
   .dataTables_paginate {
     display: flex !important;
@@ -32,14 +38,14 @@
         <h1>Attendance Records</h1>
 
         <!-- <div style="display: flex;margin-left:auto;">
-          <span id="current-time-display" style="color: #63e2b7; font-weight: bold; font-size: 1.1rem; margin-right: 10px;"></span>     
+          <span id="current-time-display" style="color: #63e2b7; font-weight: bold; font-size: 1.1rem; margin-right: 10px;"></span>
         </div> -->
         <!-- <p class="hero-copy" id="attendance-filter-copy">Filter by date range.</p> -->
-         <p>Current Time: 
+         <p>Current Time:
           <span id="current-time-display" style="color:rgb(228, 240, 236); font-weight: bold; font-size: 1.1rem;"></span>
          </p>
       </div>
-      
+
       <div class="hero-actions">
       <!-- /btn-secondary SS -->
       @if(auth()->user()->role_id === 1 || auth()->user()->role_id === 2)
@@ -74,22 +80,22 @@
       </form>
     </section> -->
       <form id="filters" class="filter-form" style="display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 15px !important; align-items: flex-end !important; justify-content: flex-start !important; width: 100% !important;">
-        
+
         <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
           <span>From</span>
           <input type="date" name="from" id="date-from" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
         </label>
-        
+
         <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
           <span>To</span>
           <input type="date" name="to" id="date-to" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
         </label>
-        
+
         <span id="department-filter-slot" style="display: none !important;"></span>
         <span id="employee-code-filter-slot" style="display: none !important;"></span>
-        
+
         <button type="submit" class="btn btn-primary" style="height: 40px !important; padding: 0 20px !important; white-space: nowrap !important; margin-bottom: 2px !important; flex: none !important;">Apply Filter</button>
-        
+
       </form>
     </section>
     <section class="panel table-panel" id="records-section">
@@ -107,17 +113,18 @@
             </tr>
           </thead>
           <tbody>
-         
+
           </tbody>
         </table>
       </div>
     </section>
   </div>
 @endsection
-
-@push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+@push('scripts')
+
 <script>
 function isHrRole(roleId) {
   return Number(roleId) === 1;
@@ -156,7 +163,7 @@ function escapeHtml(value) {
 }
 
 function isLateCheckIn(checkIn) {
-  return String(checkIn || '') > '09:00:00';
+  return String(checkIn || '') > '10:00:00';
 }
 
 function loadDepartments() {
@@ -325,8 +332,7 @@ function applyRoleControls(roleId) {
         return;
       }
 
-      // ၁။ လက်ရှိ ရှိနေပြီးသား DataTable ကို ဖျက်ပစ်ပါ (ရှိခဲ့လျှင်)
-      if ($.fn.DataTable.isDataTable('#tbl')) {
+      if ($.fn.dataTable.isDataTable('#tbl')) {
         $('#tbl').DataTable().destroy();
       }
 
@@ -334,22 +340,13 @@ function applyRoleControls(roleId) {
       renderTableHeader(res.role_id);
       renderRows(res.data || [], res.role_id);
 
-      // ၂။ Table ထဲ data ရောက်သွားပြီဖြစ်လို့ DataTable စနစ်ကို စတင်သက်ဝင်စေပါမည်
-      // $('#tbl').DataTable({
-      //   "pageLength": 10,                 // ၁ခါပြရင် ၁၀ ကြောင်းပဲ ပြမည်
-      //   //"lengthMenu": [10, 25, 50, 100],  // စိတ်ကြိုက် အရေအတွက် ရွေးချယ်ရန်
-      //   //"ordering": true,                 // Column sorting ပေးမည်
-      //   "searching": true,                // Search box ထည့်မည်
-      //   "destroy": true                   // အသစ်ပြန်ဆောက်ခွင့်ပြုမည်
-      // });
-      // 🛠️ load(filters) ထဲက ဒီအပိုင်းကို အခုလို ပြင်လိုက်ပါ
       $('#tbl').DataTable({
-        "pageLength": 10,
-        "lengthChange": false,
-        "pagingType": "simple",  // ⬅️ "simple_numbers" အစား "simple" လို့ ပြောင်းပါ (Previous နဲ့ Next ခလုတ်ပဲ ပြမည်)
-        "ordering": false,
-        "searching": false,
-        "destroy": true
+        pageLength: 10,
+        lengthChange: false,
+        pagingType: 'simple',
+        ordering: false,
+        searching: false,
+        destroy: true
       });
     })
     .fail(function(){
@@ -357,8 +354,11 @@ function applyRoleControls(roleId) {
     });
 }
     */
+    
+
+    
 function load(filters){
-  $.getJSON('{{ route('attendance.data') }}', filters)
+ $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){
       if (res.error) {
         $('#tbl tbody').html('<tr><td colspan="' + tableColumnCount(res.role_id) + '" class="empty-state">' + res.error + '</td></tr>');
@@ -423,19 +423,19 @@ function setDefaultDateRange() {
       var hours = now.getHours();
       var minutes = now.getMinutes();
       var seconds = now.getSeconds();
-      
+
       // 1. AM သို့မဟုတ် PM ခွဲခြားခြင်း
       var period = hours >= 12 ? 'PM' : 'AM';
-      
+
       // 2. 12-hour format ပြောင်းခြင်း
       hours = hours % 12;
       hours = hours ? hours : 12; // 0 ဖြစ်နေရင် 12 လို့ပြမယ်
-      
+
       // 3. နာရီ၊ မိနစ်၊ စက္ကန့် အားလုံးကို ဂဏန်းနှစ်လုံးတွဲ ဖြစ်အောင်လုပ်ခြင်း (ဥပမာ- 09:05:55)
       hours = String(hours).padStart(2, '0'); // ဒီစာကြောင်း ထည့်လိုက်လို့ 9 ကနေ 09 ဖြစ်သွားပါပြီ
       minutes = String(minutes).padStart(2, '0');
       seconds = String(seconds).padStart(2, '0');
-      
+
       // 4. ပုံစံစုစည်းခြင်း
       var timeString = hours + ':' + minutes + ':' + seconds;
 
@@ -542,6 +542,7 @@ $(function(){
       error: function(){ appAlert('Logout failed', 'error'); }
     });
   });
+});
   function scrollToRecords() {
     $('html, body').animate({
         scrollTop: $('#records-section').offset().top - 20

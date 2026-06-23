@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('head')
+  @include('components.datatables')
+@endpush
+
 @section('title', 'Personal Timesheet - Attendance')
 
 @section('content')
@@ -68,7 +72,7 @@
         </div>
       </div>
 
-      <div class="table-wrap personal-timesheet-scroll">
+      <div class="table-wrap">
         <table class="attendance-table" id="timesheet-record">
           <thead>
             <tr>
@@ -116,4 +120,5 @@
 
 @push('scripts')
   @include('timesheets._export_script')
+  @include('components.datatables-init', ['selector' => '#timesheet-record'])
 @endpush
