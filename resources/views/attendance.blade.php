@@ -92,7 +92,7 @@
         
       </form>
     </section>
-    <section class="panel table-panel">
+    <section class="panel table-panel" id="records-section">
       <div class="panel-header">
         <h2>Records</h2>
       </div>
@@ -317,7 +317,7 @@ function applyRoleControls(roleId) {
     });
 }
 */
-function load(filters){
+/*function load(filters){
   $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){
       if (res.error) {
@@ -350,6 +350,54 @@ function load(filters){
         "ordering": false,
         "searching": false,
         "destroy": true
+      });
+    })
+    .fail(function(){
+      $('#tbl tbody').html('<tr><td colspan="5" class="empty-state">Failed to load attendance records.</td></tr>');
+    });
+}
+    */
+function load(filters){
+  $.getJSON('{{ route('attendance.data') }}', filters)
+    .done(function(res){
+      if (res.error) {
+        $('#tbl tbody').html('<tr><td colspan="' + tableColumnCount(res.role_id) + '" class="empty-state">' + res.error + '</td></tr>');
+        return;
+      }
+
+      // ၁။ လက်ရှိ ရှိနေပြီးသား DataTable ကို ဖျက်ပစ်ပါ (ရှိခဲ့လျှင်)
+      if ($.fn.DataTable.isDataTable('#tbl')) {
+        $('#tbl').DataTable().destroy();
+      }
+
+      applyRoleControls(res.role_id);
+      renderTableHeader(res.role_id);
+      renderRows(res.data || [], res.role_id);
+
+      // ၂။ Dynamic Columns Array ကို တည်ဆောက်ခြင်း
+      // ဝင်လာတဲ့ Role အလိုက် ကော်လံအရေအတွက်ကို ညှိပေးရန်
+      var dtColumns = [
+        { orderable: false }, // Name
+        { orderable: false }, // Date
+        { orderable: false }, // Check In
+        { orderable: false }  // Check Out
+      ];
+
+      // အကယ်၍ HR Role ဖြစ်လို့ Table Header မှာ Department ပါလာခဲ့ရင် 
+      // DataTable ကိုလည်း ၅ ခုမြောက် Column ရှိတယ်လို့ အသိပေးရပါမယ်
+      if (isHrRole(res.role_id)) {
+        dtColumns.push({ orderable: false }); // Department
+      }
+
+      // ၃။ Table ထဲ data ရောက်သွားပြီဖြစ်လို့ DataTable ကို ပုံစံအသစ်ဖြင့် စတင်သက်ဝင်စေပါမည်
+      $('#tbl').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "pagingType": "simple", 
+        "ordering": false,
+        "searching": false,
+        "destroy": true,
+        "columns": dtColumns // ⬅️ ဤစာကြောင်းကို ထည့်သွင်းပေးရပါမည်။
       });
     })
     .fail(function(){
@@ -445,18 +493,35 @@ $(function(){
   setDefaultDateRange();
   loadCurrentFilters();
 
+  // $('#btn-my-history').on('click', function(e){
+  //   e.preventDefault();
+  //   attendanceScope = 'my';
+  //   loadCurrentFilters();
+  // });
   $('#btn-my-history').on('click', function(e){
-    e.preventDefault();
-    attendanceScope = 'my';
-    loadCurrentFilters();
-  });
+  e.preventDefault();
+  attendanceScope = 'my';
+  loadCurrentFilters();
 
+  setTimeout(function () {
+      scrollToRecords();
+  }, 300);
+});
+
+  // $('#btn-all-records').on('click', function(e){
+  //   e.preventDefault();
+  //   attendanceScope = 'all';
+  //   loadCurrentFilters();
+  // });
   $('#btn-all-records').on('click', function(e){
-    e.preventDefault();
-    attendanceScope = 'all';
-    loadCurrentFilters();
-  });
+  e.preventDefault();
+  attendanceScope = 'all';
+  loadCurrentFilters();
 
+  setTimeout(function () {
+      scrollToRecords();
+  }, 300);
+});
   $('#btn-checkin').on('click', function(e){
     e.preventDefault();
     submitAttendanceAction('{{ route('attendance.checkin') }}', 'Check in', 'Checked in');
@@ -477,6 +542,11 @@ $(function(){
       error: function(){ appAlert('Logout failed', 'error'); }
     });
   });
-});v
+  function scrollToRecords() {
+    $('html, body').animate({
+        scrollTop: $('#records-section').offset().top - 20
+    }, 500);
+}
+});
 </script>
 @endpush
