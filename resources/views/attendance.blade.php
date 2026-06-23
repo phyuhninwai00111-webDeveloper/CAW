@@ -92,7 +92,7 @@
         
       </form>
     </section>
-    <section class="panel table-panel">
+    <section class="panel table-panel" id="records-section">
       <div class="panel-header">
         <h2>Records</h2>
       </div>
@@ -493,18 +493,35 @@ $(function(){
   setDefaultDateRange();
   loadCurrentFilters();
 
+  // $('#btn-my-history').on('click', function(e){
+  //   e.preventDefault();
+  //   attendanceScope = 'my';
+  //   loadCurrentFilters();
+  // });
   $('#btn-my-history').on('click', function(e){
-    e.preventDefault();
-    attendanceScope = 'my';
-    loadCurrentFilters();
-  });
+  e.preventDefault();
+  attendanceScope = 'my';
+  loadCurrentFilters();
 
+  setTimeout(function () {
+      scrollToRecords();
+  }, 300);
+});
+
+  // $('#btn-all-records').on('click', function(e){
+  //   e.preventDefault();
+  //   attendanceScope = 'all';
+  //   loadCurrentFilters();
+  // });
   $('#btn-all-records').on('click', function(e){
-    e.preventDefault();
-    attendanceScope = 'all';
-    loadCurrentFilters();
-  });
+  e.preventDefault();
+  attendanceScope = 'all';
+  loadCurrentFilters();
 
+  setTimeout(function () {
+      scrollToRecords();
+  }, 300);
+});
   $('#btn-checkin').on('click', function(e){
     e.preventDefault();
     submitAttendanceAction('{{ route('attendance.checkin') }}', 'Check in', 'Checked in');
@@ -525,6 +542,11 @@ $(function(){
       error: function(){ appAlert('Logout failed', 'error'); }
     });
   });
-});v
+  function scrollToRecords() {
+    $('html, body').animate({
+        scrollTop: $('#records-section').offset().top - 20
+    }, 500);
+}
+});
 </script>
 @endpush
