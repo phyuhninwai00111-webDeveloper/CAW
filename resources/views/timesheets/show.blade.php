@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('head')
+  @include('components.datatables')
+@endpush
+
 @section('title', 'Timesheet Details - Attendance')
 
 @section('content')
@@ -52,8 +56,8 @@
         <span class="badge">{{ $report->details->count() }} {{ Str::plural('row', $report->details->count()) }}</span>
       </div>
 
-      <div class="table-wrap personal-timesheet-scroll">
-        <table class="attendance-table">
+      <div class="table-wrap">
+        <table class="attendance-table" id="timesheet-details-record">
           <thead>
             <tr>
               <th>Date</th>
