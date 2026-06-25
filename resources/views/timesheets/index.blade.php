@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('head')
+  @include('components.datatables')
+@endpush
+
 @section('title', 'Timesheets - Attendance')
 
 @section('content')
@@ -71,7 +75,7 @@
           <a href="{{ route('timesheets.index') }}#filter-section" class="btn btn-secondary btn-sm" style="padding: 6px 19px !important;">Clear</a>
         @endif
       </form>
-      <div class="table-wrap personal-timesheet-scroll" >
+      <div class="table-wrap">
         <table class="attendance-table" id="timesheet-record">
           <thead>
             <tr>
@@ -118,4 +122,5 @@
 
 @push('scripts')
   @include('timesheets._export_script')
+  @include('components.datatables-init', ['selector' => '#timesheet-record'])
 @endpush

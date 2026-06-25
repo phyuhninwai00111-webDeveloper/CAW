@@ -935,17 +935,6 @@ input, select {
   min-width: 680px;
 }
 
-.personal-timesheet-scroll {
-  max-height: 520px;
-  overflow: auto;
-}
-
-.personal-timesheet-scroll .attendance-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
 @media (max-width: 1024px) {
   .page-shell {
     max-width: 100%;
@@ -1039,6 +1028,10 @@ input, select {
     width: 100%;
   }
 }
+
+
+
+
 .text-wrap {
     max-width: 200px;           /* Adjust this width as needed */
     word-wrap: break-word;      /* Breaks long words */

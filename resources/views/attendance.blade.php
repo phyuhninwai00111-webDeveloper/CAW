@@ -1,5 +1,11 @@
 @extends('layouts.app')
+
+@push('head')
+  @include('components.datatables')
+@endpush
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+{{-- do you think this link is required --}}
+{{-- this code is mine --}}
 <style>
   .dataTables_paginate {
     display: flex !important;
@@ -114,10 +120,11 @@
     </section>
   </div>
 @endsection
-
-@push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+@push('scripts')
+
 <script>
 function isHrRole(roleId) {
   return Number(roleId) === 1;
@@ -156,7 +163,7 @@ function escapeHtml(value) {
 }
 
 function isLateCheckIn(checkIn) {
-  return String(checkIn || '') > '09:00:00';
+  return String(checkIn || '') > '10:00:00';
 }
 
 function loadDepartments() {
@@ -325,8 +332,7 @@ function applyRoleControls(roleId) {
         return;
       }
 
-      // ၁။ လက်ရှိ ရှိနေပြီးသား DataTable ကို ဖျက်ပစ်ပါ (ရှိခဲ့လျှင်)
-      if ($.fn.DataTable.isDataTable('#tbl')) {
+      if ($.fn.dataTable.isDataTable('#tbl')) {
         $('#tbl').DataTable().destroy();
       }
 
@@ -334,22 +340,13 @@ function applyRoleControls(roleId) {
       renderTableHeader(res.role_id);
       renderRows(res.data || [], res.role_id);
 
-      // ၂။ Table ထဲ data ရောက်သွားပြီဖြစ်လို့ DataTable စနစ်ကို စတင်သက်ဝင်စေပါမည်
-      // $('#tbl').DataTable({
-      //   "pageLength": 10,                 // ၁ခါပြရင် ၁၀ ကြောင်းပဲ ပြမည်
-      //   //"lengthMenu": [10, 25, 50, 100],  // စိတ်ကြိုက် အရေအတွက် ရွေးချယ်ရန်
-      //   //"ordering": true,                 // Column sorting ပေးမည်
-      //   "searching": true,                // Search box ထည့်မည်
-      //   "destroy": true                   // အသစ်ပြန်ဆောက်ခွင့်ပြုမည်
-      // });
-      // 🛠️ load(filters) ထဲက ဒီအပိုင်းကို အခုလို ပြင်လိုက်ပါ
       $('#tbl').DataTable({
-        "pageLength": 10,
-        "lengthChange": false,
-        "pagingType": "simple",  // ⬅️ "simple_numbers" အစား "simple" လို့ ပြောင်းပါ (Previous နဲ့ Next ခလုတ်ပဲ ပြမည်)
-        "ordering": false,
-        "searching": false,
-        "destroy": true
+        pageLength: 10,
+        lengthChange: false,
+        pagingType: 'simple',
+        ordering: false,
+        searching: false,
+        destroy: true
       });
     })
     .fail(function(){
@@ -357,8 +354,11 @@ function applyRoleControls(roleId) {
     });
 }
     */
+    
+
+    
 function load(filters){
-  $.getJSON('{{ route('attendance.data') }}', filters)
+ $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){
       if (res.error) {
         $('#tbl tbody').html('<tr><td colspan="' + tableColumnCount(res.role_id) + '" class="empty-state">' + res.error + '</td></tr>');
@@ -542,6 +542,7 @@ $(function(){
       error: function(){ appAlert('Logout failed', 'error'); }
     });
   });
+});
   function scrollToRecords() {
     $('html, body').animate({
         scrollTop: $('#records-section').offset().top - 20
