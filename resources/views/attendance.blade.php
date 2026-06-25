@@ -554,6 +554,7 @@ $(function(){
     $('html, body').animate({
         scrollTop: $('#records-section').offset().top - 20
     }, 500);
-}
+  }
+});
 </script>
 @endpush
