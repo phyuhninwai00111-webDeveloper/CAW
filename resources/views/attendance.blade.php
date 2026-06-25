@@ -163,7 +163,7 @@ function escapeHtml(value) {
 }
 
 function isLateCheckIn(checkIn) {
-  return String(checkIn || '') > '10:00:00';
+  return String(checkIn || '') > '09:00:00';
 }
 
 function loadDepartments() {
@@ -366,13 +366,19 @@ function load(filters){
       }
 
       // ၁။ လက်ရှိ ရှိနေပြီးသား DataTable ကို ဖျက်ပစ်ပါ (ရှိခဲ့လျှင်)
-      if ($.fn.DataTable.isDataTable('#tbl')) {
+      var hasDataTable = $.fn.DataTable && $.fn.dataTable;
+
+      if (hasDataTable && $.fn.dataTable.isDataTable('#tbl')) {
         $('#tbl').DataTable().destroy();
       }
 
       applyRoleControls(res.role_id);
       renderTableHeader(res.role_id);
       renderRows(res.data || [], res.role_id);
+
+      if (!hasDataTable) {
+        return;
+      }
 
       // ၂။ Dynamic Columns Array ကို တည်ဆောက်ခြင်း
       // ဝင်လာတဲ့ Role အလိုက် ကော်လံအရေအတွက်ကို ညှိပေးရန်
@@ -548,6 +554,5 @@ $(function(){
         scrollTop: $('#records-section').offset().top - 20
     }, 500);
 }
-});
 </script>
 @endpush

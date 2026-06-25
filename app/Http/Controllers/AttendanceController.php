@@ -10,7 +10,7 @@ use Carbon\Carbon; // ဖိုင်ရဲ့ အပေါ်ဆုံးမှ
 
 class AttendanceController extends Controller
 {
-    private const LATE_CHECK_IN_TIME = '9:00:00';
+    private const LATE_CHECK_IN_TIME = '09:00:00';
 
     private function isLateCheckIn($checkIn): bool
     {
