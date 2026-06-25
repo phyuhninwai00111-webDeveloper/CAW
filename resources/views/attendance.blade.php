@@ -43,7 +43,7 @@
         <!-- <p class="hero-copy" id="attendance-filter-copy">Filter by date range.</p> -->
          <p>Current Time:
           <span id="current-time-display" style="color:rgb(228, 240, 236); font-weight: bold; font-size: 1.1rem;"></span>
-         </p>
+        </p>
       </div>
 
       <div class="hero-actions">
@@ -91,8 +91,8 @@
           <input type="date" name="to" id="date-to" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
         </label>
 
-        <span id="department-filter-slot" style="display: none !important;"></span>
-        <span id="employee-code-filter-slot" style="display: none !important;"></span>
+        <span id="department-filter-slot" style="display: none !important;">Department</span>
+        <span id="employee-code-filter-slot" style="display: none !important;">Employee Code</span>
 
         <button type="submit" class="btn btn-primary" style="height: 40px !important; padding: 0 20px !important; white-space: nowrap !important; margin-bottom: 2px !important; flex: none !important;">Apply Filter</button>
 
@@ -120,10 +120,11 @@
     </section>
   </div>
 @endsection
+@push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
-@push('scripts')
+
 
 <script>
 function isHrRole(roleId) {
@@ -354,9 +355,9 @@ function applyRoleControls(roleId) {
     });
 }
     */
-    
 
-    
+
+
 function load(filters){
  $.getJSON('{{ route('attendance.data') }}', filters)
     .done(function(res){
@@ -383,7 +384,7 @@ function load(filters){
         { orderable: false }  // Check Out
       ];
 
-      // အကယ်၍ HR Role ဖြစ်လို့ Table Header မှာ Department ပါလာခဲ့ရင် 
+      // အကယ်၍ HR Role ဖြစ်လို့ Table Header မှာ Department ပါလာခဲ့ရင်
       // DataTable ကိုလည်း ၅ ခုမြောက် Column ရှိတယ်လို့ အသိပေးရပါမယ်
       if (isHrRole(res.role_id)) {
         dtColumns.push({ orderable: false }); // Department
@@ -393,7 +394,7 @@ function load(filters){
       $('#tbl').DataTable({
         "pageLength": 10,
         "lengthChange": false,
-        "pagingType": "simple", 
+        "pagingType": "simple",
         "ordering": false,
         "searching": false,
         "destroy": true,
@@ -542,7 +543,7 @@ $(function(){
       error: function(){ appAlert('Logout failed', 'error'); }
     });
   });
-});
+
   function scrollToRecords() {
     $('html, body').animate({
         scrollTop: $('#records-section').offset().top - 20
