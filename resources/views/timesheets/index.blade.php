@@ -111,6 +111,7 @@
             @empty
               <tr>
                 <td colspan="{{ $isHr ? 7 : 6 }}" class="empty-state">No timesheets available.</td>
+                {{-- <td colspan="{{ $isHr ? 7 : 6 }}" class="empty-state">No timesheets available.</td> --}}
               </tr>
             @endforelse
           </tbody>
