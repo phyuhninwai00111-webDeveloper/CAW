@@ -164,7 +164,7 @@ function escapeHtml(value) {
 }
 
 function isLateCheckIn(checkIn) {
-  return String(checkIn || '') > '09:00:00';
+  return String(checkIn || '') > '10:00:00';
 }
 
 function loadDepartments() {
