@@ -10,6 +10,13 @@ use Carbon\Carbon; // ဖိုင်ရဲ့ အပေါ်ဆုံးမှ
 
 class AttendanceController extends Controller
 {
+    private const LATE_CHECK_IN_TIME = '9:00:00';
+
+    private function isLateCheckIn($checkIn): bool
+    {
+        return $checkIn && Carbon::parse($checkIn)->format('H:i:s') > self::LATE_CHECK_IN_TIME;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -150,12 +157,12 @@ class AttendanceController extends Controller
 
         $rows = $query->orderBy('attendance.attendance_date')->get();
         $total = $rows->count();
-        $late = $rows->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count();
+        $late = $rows->filter(fn ($row) => $this->isLateCheckIn($row->check_in))->count();
         $byDate = $rows->groupBy(fn ($row) => Carbon::parse($row->attendance_date)->format('Y-m-d'))
             ->map(fn ($items, $date) => [
                 'label' => $date,
                 'total' => $items->count(),
-                'late' => $items->filter(fn ($row) => $row->check_in && Carbon::parse($row->check_in)->format('H:i:s') > '09:00:00')->count(),
+                'late' => $items->filter(fn ($row) => $this->isLateCheckIn($row->check_in))->count(),
             ])
             ->values();
         $byDepartment = $rows->groupBy(fn ($row) => $row->department_name ?: 'No department')

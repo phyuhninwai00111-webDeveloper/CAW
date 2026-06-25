@@ -144,7 +144,7 @@ function renderTableHeader(roleId) {
     '<th>Date</th>' +
     '<th>Check In</th>' +
     '<th>Check Out</th>' ;
-    //'<th>Report</th>'
+
 
   if (isHrRole(roleId)) {
     html += '<th>Department</th>';
