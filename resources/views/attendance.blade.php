@@ -32,14 +32,14 @@
         <h1>Attendance Records</h1>
 
         <!-- <div style="display: flex;margin-left:auto;">
-          <span id="current-time-display" style="color: #63e2b7; font-weight: bold; font-size: 1.1rem; margin-right: 10px;"></span>     
+          <span id="current-time-display" style="color: #63e2b7; font-weight: bold; font-size: 1.1rem; margin-right: 10px;"></span>
         </div> -->
         <!-- <p class="hero-copy" id="attendance-filter-copy">Filter by date range.</p> -->
-         <p>Current Time: 
+         <p>Current Time:
           <span id="current-time-display" style="color:rgb(228, 240, 236); font-weight: bold; font-size: 1.1rem;"></span>
          </p>
       </div>
-      
+
       <div class="hero-actions">
       <!-- /btn-secondary SS -->
       @if(auth()->user()->role_id === 1 || auth()->user()->role_id === 2)
@@ -74,22 +74,22 @@
       </form>
     </section> -->
       <form id="filters" class="filter-form" style="display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 15px !important; align-items: flex-end !important; justify-content: flex-start !important; width: 100% !important;">
-        
+
         <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
           <span>From</span>
           <input type="date" name="from" id="date-from" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
         </label>
-        
+
         <label style="width: 170px !important; flex: none !important; display: flex !important; flex-direction: column !important;">
           <span>To</span>
           <input type="date" name="to" id="date-to" style="width: 100% !important; height: 40px !important; box-sizing: border-box !important; padding: 6px 10px !important;">
         </label>
-        
+
         <span id="department-filter-slot" style="display: none !important;"></span>
         <span id="employee-code-filter-slot" style="display: none !important;"></span>
-        
+
         <button type="submit" class="btn btn-primary" style="height: 40px !important; padding: 0 20px !important; white-space: nowrap !important; margin-bottom: 2px !important; flex: none !important;">Apply Filter</button>
-        
+
       </form>
     </section>
     <section class="panel table-panel" id="records-section">
@@ -107,7 +107,7 @@
             </tr>
           </thead>
           <tbody>
-         
+
           </tbody>
         </table>
       </div>
@@ -136,7 +136,7 @@ function renderTableHeader(roleId) {
     '<th>Date</th>' +
     '<th>Check In</th>' +
     '<th>Check Out</th>' ;
-    //'<th>Report</th>'
+
 
   if (isHrRole(roleId)) {
     html += '<th>Department</th>';
@@ -383,7 +383,7 @@ function load(filters){
         { orderable: false }  // Check Out
       ];
 
-      // အကယ်၍ HR Role ဖြစ်လို့ Table Header မှာ Department ပါလာခဲ့ရင် 
+      // အကယ်၍ HR Role ဖြစ်လို့ Table Header မှာ Department ပါလာခဲ့ရင်
       // DataTable ကိုလည်း ၅ ခုမြောက် Column ရှိတယ်လို့ အသိပေးရပါမယ်
       if (isHrRole(res.role_id)) {
         dtColumns.push({ orderable: false }); // Department
@@ -393,7 +393,7 @@ function load(filters){
       $('#tbl').DataTable({
         "pageLength": 10,
         "lengthChange": false,
-        "pagingType": "simple", 
+        "pagingType": "simple",
         "ordering": false,
         "searching": false,
         "destroy": true,
@@ -423,19 +423,19 @@ function setDefaultDateRange() {
       var hours = now.getHours();
       var minutes = now.getMinutes();
       var seconds = now.getSeconds();
-      
+
       // 1. AM သို့မဟုတ် PM ခွဲခြားခြင်း
       var period = hours >= 12 ? 'PM' : 'AM';
-      
+
       // 2. 12-hour format ပြောင်းခြင်း
       hours = hours % 12;
       hours = hours ? hours : 12; // 0 ဖြစ်နေရင် 12 လို့ပြမယ်
-      
+
       // 3. နာရီ၊ မိနစ်၊ စက္ကန့် အားလုံးကို ဂဏန်းနှစ်လုံးတွဲ ဖြစ်အောင်လုပ်ခြင်း (ဥပမာ- 09:05:55)
       hours = String(hours).padStart(2, '0'); // ဒီစာကြောင်း ထည့်လိုက်လို့ 9 ကနေ 09 ဖြစ်သွားပါပြီ
       minutes = String(minutes).padStart(2, '0');
       seconds = String(seconds).padStart(2, '0');
-      
+
       // 4. ပုံစံစုစည်းခြင်း
       var timeString = hours + ':' + minutes + ':' + seconds;
 
