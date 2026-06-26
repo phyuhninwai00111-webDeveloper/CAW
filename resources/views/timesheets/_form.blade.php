@@ -119,6 +119,13 @@
 @once
     @push('scripts')
         <script>
+            // Force the panel to show when the page loads if we are in edit mode
+$(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('edit')) {
+        $('.panel').show(); // Ensures the form panel is visible
+    }
+});
            var $form = $(this).closest('[data-timesheet-form]');
            var remainingRows = $form.find('[data-timesheet-row]').length;
             //const isEditMode = window.location.search.includes('edit=1');
@@ -132,6 +139,7 @@
 
             const isEditMode = window.location.search.includes('edit=1');
             var remainingRows = $form.find('[data-timesheet-row]').length;
+
                 var canRemove = isEditMode || remainingRows > 1;
                 $form.find('[data-remove-row]').prop('disabled', !canRemove);
             }
@@ -139,6 +147,7 @@
             $(function() {
                 $('[data-timesheet-form]').each(function() {
                     refreshTimesheetRows($(this));
+
                 });
 
                 $(document).on('click', '[data-add-row]', function() {
@@ -158,12 +167,21 @@
                         alert('At least one row is required.');
                         return;
                     }
-                    if (remainingRows < 1) {
-                        var $form = $(this).closest('[data-timesheet-form]');
-                         $form.hide();}
-                         else {
+
                     $row.remove();
+
+                    var countAfterRemoval = $form.find('[data-timesheet-row]').length;
+                    if (isEditMode && countAfterRemoval < 1) {$form.closest('.panel').hide();
+                        console.log("Hiding form..."); // <--- ADD THIS
+                        // var $form = $(this).closest('[data-timesheet-form]');
+                        //  $form.hide();
+                        //  $form.css('display', 'none');
+                        //  $form.find('.form-actions').css('display', 'none');
+                        }
+                         else {
+
                     // $(this).closest('[data-timesheet-row]').remove();
+
                     refreshTimesheetRows($form);
                     }
         });
