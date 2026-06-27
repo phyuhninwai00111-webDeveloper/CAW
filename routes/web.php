@@ -37,9 +37,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/timesheets', [TimesheetController::class, 'index'])->name('timesheets.index');
     Route::get('/timesheets/personal', [TimesheetController::class, 'personal'])->name('timesheets.personal');
     Route::post('/timesheets', [TimesheetController::class, 'store'])->name('timesheets.store');
+    Route::delete('/timesheets/{report_code}/details/{detail}', [TimesheetController::class, 'destroyDetail'])->name('timesheets.details.destroy');
     Route::get('/timesheets/{report_code}', [TimesheetController::class, 'show'])->name('timesheets.show');
     Route::put('/timesheets/{report_code}', [TimesheetController::class, 'update'])->name('timesheets.update');
-    
+
     Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
 });

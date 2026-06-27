@@ -94,7 +94,22 @@
                   <td>{{ $detail->status }}</td>
                   <td class="text-wrap">{{ $detail->remark ?? '-' }}</td>
                   <td data-export-ignore>
-                    <a href="{{ route('timesheets.show', ['report_code' => $report->report_code, 'edit' => 1, 'detail_id' => $detail->id, 'mode' => 'edit']) }}#edit-timesheet" class="btn btn-secondary btn-sm">Edit</a>
+                    <div style="display:inline-flex; align-items:center; gap:0.35rem;">
+                      <a href="{{ route('timesheets.show', ['report_code' => $report->report_code, 'edit' => 1, 'detail_id' => $detail->id, 'mode' => 'edit']) }}#edit-timesheet" class="btn btn-sm" style="display:inline-flex; align-items:center; justify-content:center; min-width:2rem; min-height:2rem; background:#2f80ed; color:#fff; border:1px solid #1f6fd3; border-radius:0.65rem; box-shadow:0 4px 12px rgba(47,128,237,0.18); padding:0;" title="Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M12.146.146a.5.5 0 0 1 .708 0l2.5 2.5a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-4 2a.5.5 0 0 1-.65-.65l2-4a.5.5 0 0 1 .11-.168zM11.293 2.5 13.5 4.707 14.793 3.5 12.586 1.293zM4.5 11.5 11.293 4.707 13.5 6.914 6.707 13.707z"/>
+                        </svg>
+                      </a>
+                      <form method="POST" action="{{ route('timesheets.details.destroy', ['report_code' => $report->report_code, 'detail' => $detail->id]) }}" onsubmit="return confirm('Delete this detail row?');" style="margin:0;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm" style="display:inline-flex; align-items:center; justify-content:center; min-width:2rem; min-height:2rem; background:#eb5757; color:#fff; border:1px solid #d04444; border-radius:0.65rem; box-shadow:0 4px 12px rgba(235,87,87,0.18); padding:0;" title="Delete">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5V6h-5zM4 6.5A1.5 1.5 0 0 1 5.5 5h5A1.5 1.5 0 0 1 12 6.5V7h.5a.5.5 0 0 1 0 1h-.5v5a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 4 13.5v-5H3.5a.5.5 0 0 1 0-1zm1.5 1.5v5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-5z"/>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               @empty

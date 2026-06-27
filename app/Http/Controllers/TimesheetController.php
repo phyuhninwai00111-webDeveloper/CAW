@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\DailyReport;
+use App\Models\DailyReportDetail;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -213,6 +214,23 @@ class TimesheetController extends Controller
             ->update(['report_code' => $report->report_code]);
 
         return redirect()->route('timesheets.show', $report->report_code)->with('success', 'Timesheet updated successfully.');
+    }
+
+    public function destroyDetail(string $reportCode, int $detail)
+    {
+        $report = DailyReport::where('report_code', $reportCode)->firstOrFail();
+
+        if (! $this->canEditReport($report)) {
+            abort(403);
+        }
+
+        $detailRow = DailyReportDetail::where('report_code', $reportCode)
+            ->where('id', $detail)
+            ->firstOrFail();
+
+        $detailRow->delete();
+
+        return redirect()->route('timesheets.personal')->with('success', 'Timesheet detail deleted successfully.');
     }
 
     protected function validatedTimesheet(Request $request, ?string $reportCode = null): array
