@@ -69,7 +69,7 @@ class AttendanceController extends Controller
                 'name' => $attendance->name,
                 'department_name' => $attendance->department_name,
             ];
-        });
+        })->values();
 
         return response()->json(['role_id' => $roleId, 'data' => $rows]);
     }

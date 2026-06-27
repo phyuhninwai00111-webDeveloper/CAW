@@ -189,11 +189,9 @@ function loadDepartments() {
 function renderRows(rows, roleId){
   var html = '';
   var isHr = isHrRole(roleId);
-  var colspan = tableColumnCount(roleId);
 
   if (!rows.length) {
-    html = '<tr><td colspan="' + colspan + '" class="empty-state">No attendance records found for the selected range.</td></tr>';
-    $('#tbl tbody').html(html);
+    $('#tbl tbody').empty();
     return;
   }
 
@@ -404,6 +402,10 @@ function load(filters){
         "ordering": false,
         "searching": false,
         "destroy": true,
+        "language": {
+          "emptyTable": "No matching records found",
+          "zeroRecords": "No matching records found"
+        },
         "columns": dtColumns // ⬅️ ဤစာကြောင်းကို ထည့်သွင်းပေးရပါမည်။
       });
     })
