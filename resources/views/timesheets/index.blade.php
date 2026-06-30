@@ -106,12 +106,19 @@
                 @if($isHr)
                   <td>{{ $report->department_name ?? '-' }}</td>
                 @endif
-                <td data-export-ignore><a href="{{ route('timesheets.show', [$report->report_code, 'mode' => 'view']) }}" class="btn btn-secondary btn-sm" style="padding: 6px 12px;">View</a></td>
+                @if(request()->query('mode') !== 'view')
+                  <td data-export-ignore><a href="{{ route('timesheets.show', [$report->report_code, 'mode' => 'view']) }}#edit-timesheet" class="btn btn-secondary btn-sm" style="padding: 6px 12px;">View</a></td>
+                @endif
               </tr>
             @empty
+              @php
+                $emptyColumnCount = 4 + ($isHr ? 1 : 0) + (request()->query('mode') !== 'view' ? 1 : 0);
+              @endphp
               <tr>
-                <td colspan="{{ $isHr ? 7 : 6 }}" class="empty-state">No timesheets available.</td>
-                {{-- <td colspan="{{ $isHr ? 7 : 6 }}" class="empty-state">No timesheets available.</td> --}}
+                <td class="empty-state">No timesheets available.</td>
+                @for ($i = 1; $i < $emptyColumnCount; $i++)
+                  <td></td>
+                @endfor
               </tr>
             @endforelse
           </tbody>

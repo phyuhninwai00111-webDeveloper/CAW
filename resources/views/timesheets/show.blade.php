@@ -86,9 +86,14 @@
                 @endif
               </tr>
             @empty
+              @php
+                $detailColumnCount = request()->query('mode') !== 'view' ? 6 : 5;
+              @endphp
               <tr>
-
-                <td colspan="{{ $canEdit ? 6 : 5 }}" class="empty-state">No detail rows have been added.</td>
+                <td class="empty-state">No detail rows have been added.</td>
+                @for ($i = 1; $i < $detailColumnCount; $i++)
+                  <td></td>
+                @endfor
               </tr>
             @endforelse
           </tbody>
