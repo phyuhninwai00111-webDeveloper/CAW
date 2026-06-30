@@ -114,16 +114,18 @@
                 </tr>
               @empty
                 <tr>
-                  <td>{{ $report->report_date->format('Y-m-d') }}</td>
-                  <td colspan="4" class="empty-state">No detail rows have been added.</td>
-                  <td data-export-ignore>
-                    <a href="{{ route('timesheets.show', $report->report_code) }}" class="btn btn-secondary btn-sm">View</a>
-                  </td>
+                  <td class="empty-state">No detail rows have been added.</td>
+                  @for ($i = 1; $i < 6; $i++)
+                    <td></td>
+                  @endfor
                 </tr>
               @endforelse
             @empty
               <tr>
-                <td colspan="6" class="empty-state">No timesheets available.</td>
+                <td class="empty-state">No timesheets available.</td>
+                @for ($i = 1; $i < 6; $i++)
+                  <td></td>
+                @endfor
               </tr>
             @endforelse
           </tbody>
